@@ -14,7 +14,7 @@ calls. Protect that after every change.
   `CACHE = 'ledger-vN'`. The fetch handler serves cache-first for same-origin,
   lets cross-origin pass through, and falls back to `ledger.html` offline.
 - `manifest.json` `start_url` is `ledger.html`. The deployed app file must be
-  named `ledger.html` (rename `ledger-receipt.html` on deploy) and all files
+  named `ledger.html` (the manifest `start_url` and SW SHELL target it) and all files
   kept in one folder.
 - Service workers + Web Crypto require a **secure context**: HTTPS or
   `localhost`. They will not work from `file://`.
@@ -28,7 +28,7 @@ calls. Protect that after every change.
 ## Verify offline
 
 1. Serve over a secure context: `python3 -m http.server` →
-   `http://localhost:8000/ledger-receipt.html` (or rename to `ledger.html`).
+   `http://localhost:8000/ledger.html`.
 2. Load once so the service worker installs and caches the shell.
 3. Go offline (DevTools → Network → Offline) and reload — the app should still
    load and function.

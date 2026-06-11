@@ -5,7 +5,7 @@ No database to install. No server. Data lives encrypted on your device.
 
 ## Files
 
-- `ledger-receipt.html` — the app (rename to `ledger.html` when you deploy)
+- `ledger.html` — the app (manifest `start_url` and the service worker target this name)
 - `manifest.json` — makes it installable
 - `sw.js` — service worker; caches the app for offline use
 - `icon-192.png`, `icon-512.png` — app icons
@@ -13,14 +13,13 @@ No database to install. No server. Data lives encrypted on your device.
 - `jetbrains-mono-latin.woff2` — self-hosted font so the app stays fully offline (no CDN)
 
 > Note: the app file references `manifest.json` and `sw.js`, and the manifest’s
-> `start_url` is `ledger.html`. So rename `ledger-receipt.html` to `ledger.html`,
-> and keep all files in the same folder.
+> `start_url` is `ledger.html` — which matches the file name. Just keep all
+> files in the same folder; no renaming needed.
 
 ## Run it (3 options, all free)
 
 ### Option A — Netlify Drop (fastest, ~60 seconds)
 
-1. Rename `ledger-receipt.html` to `ledger.html`.
 1. Put all files in one folder.
 1. Go to app.netlify.com/drop and drag the folder in.
 1. You get an HTTPS URL. Open it on your phone.

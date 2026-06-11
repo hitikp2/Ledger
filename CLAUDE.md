@@ -17,7 +17,7 @@ color, hand-drawn SVG charts, dark/light via `data-theme`.
 
 | File | Role |
 |------|------|
-| `ledger-receipt.html` | The entire app — HTML + inline CSS + inline JS. Rename to `ledger.html` on deploy. **This is where almost all work happens.** |
+| `ledger.html` | The entire app — HTML + inline CSS + inline JS. **This is where almost all work happens.** |
 | `ledger-crypto.js` | Standalone copy of the crypto layer. The same code is embedded inside the HTML; keep the two in sync. |
 | `manifest.json` | PWA manifest. `start_url` is `ledger.html`. |
 | `sw.js` | Service worker. Caches the app shell for offline use. Bump `CACHE` to invalidate. |
@@ -64,15 +64,15 @@ color, hand-drawn SVG charts, dark/light via `data-theme`.
    keys extractable, or add a password-reset/escrow path.
 6. **Preserve the receipt design system** and dark/light theming in every UI
    change (monospace, no color, `currentColor` SVGs, `var(--…)` tokens).
-7. **Keep `ledger-crypto.js` and the embedded crypto in `ledger-receipt.html`
+7. **Keep `ledger-crypto.js` and the embedded crypto in `ledger.html`
    in sync** when either changes.
 
 ## Working conventions
 
-- Edit `ledger-receipt.html` directly; there is no transpile/bundle.
+- Edit `ledger.html` directly; there is no transpile/bundle.
 - To test: serve the folder over HTTPS or `localhost` (service workers + Web
   Crypto require a secure context) and open in a browser. E.g.
-  `python3 -m http.server` then visit `http://localhost:8000/ledger-receipt.html`.
+  `python3 -m http.server` then visit `http://localhost:8000/ledger.html`.
 - Match the existing terse, compact JS style in the file.
 - When changing cached assets, bump `CACHE` in `sw.js`.
 
@@ -136,6 +136,11 @@ lands.
 - 2026-06-11 — Added a **Self-Test** panel (roadmap item 7) that verifies the
   three security invariants (wrong-passphrase rejection, persistence round-trip,
   ciphertext-only at rest) live in the browser. **All 7 roadmap items now land.**
+- 2026-06-11 — Renamed `ledger-receipt.html` → `ledger.html` so the file name
+  matches the manifest `start_url` and the `sw.js` SHELL with no deploy-time
+  rename step; updated all doc/skill references and dropped the rename
+  instructions from `SETUP.md`. The service worker now caches the app shell
+  correctly when served as-is.
 
 ## Skills
 

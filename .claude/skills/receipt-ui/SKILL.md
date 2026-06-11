@@ -1,6 +1,6 @@
 ---
 name: receipt-ui
-description: Add or modify LEDGER UI while preserving the black-and-white paper-receipt design system, monospace type, hand-drawn SVG charts, and dark/light theming. Use when adding tabs/views, building panels (e.g. Settings), or restyling any part of ledger-receipt.html.
+description: Add or modify LEDGER UI while preserving the black-and-white paper-receipt design system, monospace type, hand-drawn SVG charts, and dark/light theming. Use when adding tabs/views, building panels (e.g. Settings), or restyling any part of ledger.html.
 ---
 
 # Receipt UI

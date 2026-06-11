@@ -1,6 +1,6 @@
 ---
 name: crypto-review
-description: Security review of LEDGER's end-to-end encryption layer (ledger-crypto.js and the embedded copy in ledger-receipt.html). Use when changing, auditing, or reasoning about key derivation, AES-GCM encryption, IndexedDB ciphertext storage, recovery keys, or WebAuthn/FIDO2 key-binding.
+description: Security review of LEDGER's end-to-end encryption layer (ledger-crypto.js and the embedded copy in ledger.html). Use when changing, auditing, or reasoning about key derivation, AES-GCM encryption, IndexedDB ciphertext storage, recovery keys, or WebAuthn/FIDO2 key-binding.
 ---
 
 # Crypto Review
@@ -27,7 +27,7 @@ learn nothing.
 ## Two synced copies
 
 The crypto exists twice: standalone `ledger-crypto.js` and embedded inside
-`ledger-receipt.html`. Any change must be applied to **both** and kept identical.
+`ledger.html`. Any change must be applied to **both** and kept identical.
 
 ## Review checklist
 
