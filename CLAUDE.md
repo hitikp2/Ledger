@@ -107,8 +107,11 @@ lands.
   `assertSecurityKey` is required before `enterApp()`; cancel/fail re-locks.
   *This is tier-A authentication (an unlock gate), not key-binding — the
   ciphertext is still passphrase-only, so the recovery key path is unaffected.*
-- [ ] **7. Verification.** Console/test checks proving: wrong passphrase
-  rejected, data persists across reload, IndexedDB holds only ciphertext.
+- [x] **7. Verification.** A **Self-Test** panel in Settings (`runSelfTest` /
+  `runAndShowSelfTest`) runs live checks against the unlocked vault and renders
+  pass/fail (also logged to the console): a wrong passphrase fails to decrypt the
+  stored blob, the on-disk ciphertext decrypts and matches memory (reload-safe),
+  and the stored record is an opaque `{iv,ct}` envelope with no plaintext.
 
 ### Changelog
 
@@ -130,6 +133,9 @@ lands.
   a Settings toggle registers a security key (`settings.webauthn`) and `unlock`
   requires a successful `assertSecurityKey` after the passphrase before entering
   the app. Tier-A gate only; crypto/key derivation unchanged.
+- 2026-06-11 — Added a **Self-Test** panel (roadmap item 7) that verifies the
+  three security invariants (wrong-passphrase rejection, persistence round-trip,
+  ciphertext-only at rest) live in the browser. **All 7 roadmap items now land.**
 
 ## Skills
 

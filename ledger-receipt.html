@@ -932,6 +932,12 @@ body{
       <div class="foot-note" id="sec-note" hidden></div>
 
       <hr class="rule dash">
+      <div class="section-title">Self-Test · Verify Encryption</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Run live checks against your unlocked vault: a wrong passphrase is rejected, what's on disk reloads, and IndexedDB holds only ciphertext. Results also print to the browser console.</p>
+      <button class="add no-print" id="set-selftest">▸ Run Self-Test</button>
+      <div id="set-selftest-out" class="xp-list" style="margin-top:10px"></div>
+
+      <hr class="rule dash">
       <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
     </div>
 
@@ -1711,11 +1717,60 @@ async function disableSecurityKey(){
   renderSecurity();
   if(note){ note.hidden=false; note.textContent='SECURITY KEY REMOVED.'; }
 }
+// ===== SELF-TEST: prove the security invariants against the live vault =====
+async function runSelfTest(){
+  const out=[]; const add=(name,ok,detail)=>out.push({name,ok,detail});
+  if(!VAULT||!VAULT_KEY){ add('Vault is unlocked',false,'unlock the vault first'); return out; }
+  const saltRec=await idbGet('salt');
+  const blob=await idbGet('data');
+  if(!blob){ add('Ciphertext exists on disk',false,'no data record found'); return out; }
+
+  // 1) a wrong passphrase must NOT decrypt the stored blob (GCM auth fails)
+  try{
+    const wrongKey=await LedgerCrypto.deriveKey('definitely-not-the-passphrase-'+Math.random(), LedgerCrypto.b64.dec(saltRec));
+    let threw=false;
+    try{ await LedgerCrypto.decrypt(blob,wrongKey); }catch(_){ threw=true; }
+    add('Wrong passphrase rejected', threw, threw?'GCM auth tag failed, as expected':'decrypt unexpectedly succeeded');
+  }catch(e){ add('Wrong passphrase rejected',false,String(e)); }
+
+  // 2) what is on disk decrypts with the real key and matches memory (reload-safe)
+  try{
+    const onDisk=await LedgerCrypto.decrypt(blob,VAULT_KEY);
+    const ok=onDisk&&Array.isArray(onDisk.transactions)&&onDisk.transactions.length===txns().length;
+    add('Persisted data reloads', ok, 'on-disk '+((onDisk.transactions||[]).length)+' txns · in memory '+txns().length);
+  }catch(e){ add('Persisted data reloads',false,String(e)); }
+
+  // 3) the stored record is an opaque envelope — no plaintext at rest
+  try{
+    const raw=JSON.stringify(blob);
+    const sample=(txns().find(t=>t.merchant)||{}).merchant||'';
+    const leak=sample&&raw.indexOf(sample)>-1;
+    const shaped=!!(blob.ct&&blob.iv)&&!('transactions' in blob);
+    add('IndexedDB holds only ciphertext', shaped&&!leak,
+      leak?('LEAK: plaintext "'+sample+'" found in stored record'):'envelope {iv,ct,alg}; no plaintext merchant present');
+  }catch(e){ add('IndexedDB holds only ciphertext',false,String(e)); }
+
+  return out;
+}
+async function runAndShowSelfTest(){
+  const el=document.getElementById('set-selftest-out');
+  if(el) el.innerHTML='<div class="foot-note">Running…</div>';
+  const results=await runSelfTest();
+  const passed=results.filter(r=>r.ok).length;
+  console.group('%cLEDGER self-test','font-weight:700');
+  results.forEach(r=>console.log((r.ok?'✓':'✗')+' '+r.name+' — '+r.detail));
+  console.log(passed+'/'+results.length+' checks passed'); console.groupEnd();
+  if(el) el.innerHTML=results.map(r=>
+    '<div class="li"><span class="k">'+(r.ok?'✓ ':'✗ ')+r.name+' <small>'+r.detail+'</small></span><span class="dots"></span><span class="v">'+(r.ok?'PASS':'FAIL')+'</span></div>'
+  ).join('')+'<div class="li tot"><span class="k">RESULT</span><span class="dots"></span><span class="v">'+passed+'/'+results.length+' PASS</span></div>';
+}
 (function initSettings(){
   const ex=document.getElementById('set-export');
   if(ex) ex.addEventListener('click',exportVault);
   const sec=document.getElementById('sec-toggle');
   if(sec) sec.addEventListener('click',()=>{ sec.dataset.on?disableSecurityKey():enableSecurityKey(); });
+  const st=document.getElementById('set-selftest');
+  if(st) st.addEventListener('click',runAndShowSelfTest);
   const drop=document.getElementById('set-import-drop');
   const input=document.getElementById('set-import-file');
   if(drop&&input){
