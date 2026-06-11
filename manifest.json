@@ -1,0 +1,16 @@
+{
+  "name": "LEDGER — The Private Ledger",
+  "short_name": "LEDGER",
+  "description": "Private, encrypted personal finance. Your data never leaves the device.",
+  "start_url": "ledger.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
