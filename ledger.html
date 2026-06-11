@@ -938,6 +938,14 @@ body{
       <div id="set-selftest-out" class="xp-list" style="margin-top:10px"></div>
 
       <hr class="rule dash">
+      <div class="section-title">Data · Reset</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">A new vault starts with sample data so the tabs aren't empty. Clear it to begin tracking your own. <b>Export a backup first</b> if you want it — there's no undo.</p>
+      <button class="add no-print" id="set-clear">▸ Clear All Transactions</button>
+      <button class="add no-print" id="set-sample" style="margin-top:8px;background:var(--bg);color:var(--ink-2)">▸ Load Sample Data</button>
+      <button class="add no-print" id="set-erase" style="margin-top:8px;background:var(--bg);color:var(--ink-2)">▸ Erase Vault &amp; Start Over</button>
+      <div class="foot-note" id="set-data-note" hidden></div>
+
+      <hr class="rule dash">
       <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
     </div>
 
@@ -1167,8 +1175,9 @@ async function unlock(passphrase){
 
   if(firstTime){
     VAULT_KEY=key;
+    // New vaults start EMPTY — sample data is opt-in via Settings → Data.
     VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString(),
-      transactions:seedTransactions(), settings:{merchantRules:{}, reviewStreak:0, reviewCleared:0}};
+      transactions:[], settings:{merchantRules:{}, reviewStreak:0, reviewCleared:0}};
     await saveVault();
     const rk=LedgerCrypto.generateRecoveryKey();
     enterApp();
@@ -1764,13 +1773,48 @@ async function runAndShowSelfTest(){
     '<div class="li"><span class="k">'+(r.ok?'✓ ':'✗ ')+r.name+' <small>'+r.detail+'</small></span><span class="dots"></span><span class="v">'+(r.ok?'PASS':'FAIL')+'</span></div>'
   ).join('')+'<div class="li tot"><span class="k">RESULT</span><span class="dots"></span><span class="v">'+passed+'/'+results.length+' PASS</span></div>';
 }
+// ----- data reset (Settings → Data) -----
+async function clearAllTransactions(){
+  const note=document.getElementById('set-data-note');
+  if(!VAULT) return;
+  if(!confirm('Clear ALL transactions from this vault?\n\nYour passphrase and settings stay. This cannot be undone — export a backup first if you want one.')) return;
+  VAULT.transactions=[];
+  settings().reviewCleared=0;
+  await saveVault();
+  hydrate();
+  if(note){ note.hidden=false; note.textContent='ALL TRANSACTIONS CLEARED · START ADDING YOUR OWN.'; }
+}
+async function loadSampleData(){
+  const note=document.getElementById('set-data-note');
+  if(!VAULT) return;
+  if(txns().length && !confirm('Replace the current transactions with sample demo data?')) return;
+  VAULT.transactions=seedTransactions();
+  settings().reviewCleared=0;
+  await saveVault();
+  hydrate();
+  if(note){ note.hidden=false; note.textContent='SAMPLE DATA LOADED.'; }
+}
+async function eraseVault(){
+  if(!confirm('Erase the ENTIRE vault on this device — transactions AND passphrase?\n\nYou will set up a brand-new, empty vault. This cannot be undone.')) return;
+  if(!confirm('Are you absolutely sure? Without a backup (.ledger export) this data is gone for good.')) return;
+  await idbSet('salt',null);
+  await idbSet('data',null);
+  VAULT_KEY=null; VAULT=null;
+  location.reload();
+}
 (function initSettings(){
   const ex=document.getElementById('set-export');
   if(ex) ex.addEventListener('click',exportVault);
+  const sample=document.getElementById('set-sample');
+  if(sample) sample.addEventListener('click',loadSampleData);
   const sec=document.getElementById('sec-toggle');
   if(sec) sec.addEventListener('click',()=>{ sec.dataset.on?disableSecurityKey():enableSecurityKey(); });
   const st=document.getElementById('set-selftest');
   if(st) st.addEventListener('click',runAndShowSelfTest);
+  const clr=document.getElementById('set-clear');
+  if(clr) clr.addEventListener('click',clearAllTransactions);
+  const era=document.getElementById('set-erase');
+  if(era) era.addEventListener('click',eraseVault);
   const drop=document.getElementById('set-import-drop');
   const input=document.getElementById('set-import-file');
   if(drop&&input){
