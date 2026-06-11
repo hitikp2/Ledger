@@ -136,6 +136,10 @@ lands.
 - 2026-06-11 — Added a **Self-Test** panel (roadmap item 7) that verifies the
   three security invariants (wrong-passphrase rejection, persistence round-trip,
   ciphertext-only at rest) live in the browser. **All 7 roadmap items now land.**
+- 2026-06-11 — New vaults now start **empty**; the demo set is opt-in via a
+  **Settings → Data** panel (`Load Sample Data`). Added `clearAllTransactions`
+  (blank the ledger, keep passphrase/settings) and `eraseVault` (full reset →
+  reload). Bumped `sw.js` `CACHE` to `ledger-v3`.
 - 2026-06-11 — Renamed `ledger-receipt.html` → `ledger.html` so the file name
   matches the manifest `start_url` and the `sw.js` SHELL with no deploy-time
   rename step; updated all doc/skill references and dropped the rename
