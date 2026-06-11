@@ -10,9 +10,16 @@
 <meta name="apple-mobile-web-app-title" content="LEDGER">
 <link rel="manifest" href="manifest.json">
 <title>LEDGER — Receipt</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* Self-hosted JetBrains Mono (latin variable font) — no network, fully offline.
+   One woff2 covers weights 400–700; Inter was unused so it was dropped. */
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:400 700;
+  font-display:swap;
+  src:url('jetbrains-mono-latin.woff2') format('woff2');
+}
 :root{
   --bg:#FFFFFF;
   --paper:#FFFFFF;

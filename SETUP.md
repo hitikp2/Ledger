@@ -10,6 +10,7 @@ No database to install. No server. Data lives encrypted on your device.
 - `sw.js` — service worker; caches the app for offline use
 - `icon-192.png`, `icon-512.png` — app icons
 - `ledger-crypto.js` — standalone copy of the crypto (already embedded in the app)
+- `jetbrains-mono-latin.woff2` — self-hosted font so the app stays fully offline (no CDN)
 
 > Note: the app file references `manifest.json` and `sw.js`, and the manifest’s
 > `start_url` is `ledger.html`. So rename `ledger-receipt.html` to `ledger.html`,

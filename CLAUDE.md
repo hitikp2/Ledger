@@ -22,6 +22,7 @@ color, hand-drawn SVG charts, dark/light via `data-theme`.
 | `manifest.json` | PWA manifest. `start_url` is `ledger.html`. |
 | `sw.js` | Service worker. Caches the app shell for offline use. Bump `CACHE` to invalidate. |
 | `icon-192.png`, `icon-512.png` | App icons. |
+| `jetbrains-mono-latin.woff2` | Self-hosted font (latin variable, weights 400–700). Cached by `sw.js`; no CDN. |
 | `SETUP.md` | Deploy instructions + the original production roadmap prompt. |
 | `.claude/skills/` | Project-specific skills (see below). |
 
@@ -115,9 +116,12 @@ lands.
   (with dedupe + confirm), and Review now read/write the vault and persist via
   `saveVault()`; `categorize()` consults learned `merchantRules`.
 - 2026-06-11 — Added a **Settings** tab with encrypted export/import (roadmap
-  item 5); bumped `sw.js` `CACHE` to `ledger-v2`. Flagged: the app still loads
-  Google Fonts from a CDN (lines 13–14), which breaks the no-network/offline
-  constraint and should be removed/self-hosted.
+  item 5); bumped `sw.js` `CACHE` to `ledger-v2`.
+- 2026-06-11 — Removed the Google Fonts CDN `<link>`s (a no-network/offline
+  constraint violation) and self-hosted JetBrains Mono as
+  `jetbrains-mono-latin.woff2` via an inline `@font-face`; added it to the `sw.js`
+  SHELL. Unused Inter was dropped. The app now makes **zero** runtime network
+  calls and is genuinely offline.
 
 ## Skills
 
