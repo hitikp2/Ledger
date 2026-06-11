@@ -398,6 +398,7 @@ body{
       <button data-v="family">Family</button>
       <button data-v="travel">Travel</button>
       <button data-v="statement">Statement</button>
+      <button data-v="settings">Settings</button>
     </div>
 
     <!-- ============ OVERVIEW ============ -->
@@ -896,6 +897,28 @@ body{
         <div class="no">H · 2026 · 0610 · CONFIDENTIAL</div>
       </div>
       <div class="thanks">— THANK YOU FOR BANKING WITH YOURSELF —</div>
+    </div>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="view" id="v-settings">
+      <div class="section-title">Backup · Encrypted Export</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Download your vault as a <b>.ledger</b> file. It is already ciphertext — safe to drop in iCloud, Dropbox, or a USB key. Only your passphrase can open it.</p>
+      <button class="add no-print" id="set-export">▸ Export Encrypted Vault</button>
+      <div class="foot-note" id="set-export-note" hidden></div>
+
+      <hr class="rule dash">
+      <div class="section-title">Restore · Import Vault</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Load a <b>.ledger</b> file from another device. This <b>replaces</b> the vault on this device; you'll re-enter that vault's passphrase to unlock it.</p>
+      <div class="imp-drop" id="set-import-drop" tabindex="0" role="button" aria-label="Import .ledger backup">
+        <div class="ic">↑</div>
+        <div class="it">Choose a .ledger file</div>
+        <div class="is">restores an encrypted backup · nothing is uploaded</div>
+        <input type="file" id="set-import-file" accept=".ledger,application/json,text/plain" hidden>
+      </div>
+      <div class="foot-note" id="set-import-note" hidden></div>
+
+      <hr class="rule dash">
+      <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
     </div>
 
     <hr class="rule dash">
@@ -1590,6 +1613,56 @@ function hydrate(){
   renderReview();
   if(document.getElementById('v-explore')) xpRender();
 }
+
+// ===== SETTINGS: encrypted export / import (backup · multi-device) =====
+// Exports the stored ciphertext (salt + data envelope). Salt is non-secret and
+// data is AES-256-GCM ciphertext, so the file is safe at rest. Plaintext never
+// leaves memory. Restore needs this file AND the passphrase.
+async function exportVault(){
+  const note=document.getElementById('set-export-note');
+  const salt=await idbGet('salt');
+  const data=await idbGet('data');
+  if(!data||!salt){ if(note){note.hidden=false;note.textContent='NOTHING TO EXPORT YET.';} return; }
+  const payload=JSON.stringify({app:'LEDGER', fmt:1, salt, data, exportedAt:new Date().toISOString()});
+  const url=URL.createObjectURL(new Blob([payload],{type:'application/octet-stream'}));
+  const a=document.createElement('a');
+  a.href=url; a.download='ledger-'+new Date().toISOString().slice(0,10)+'.ledger';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  if(note){ note.hidden=false; note.textContent='EXPORTED · CIPHERTEXT ONLY · STORE IT SOMEWHERE SAFE'; }
+}
+function importVaultFile(file){
+  const note=document.getElementById('set-import-note');
+  const fail=m=>{ if(note){note.hidden=false;note.textContent=m;} };
+  const r=new FileReader();
+  r.onload=async e=>{
+    let obj;
+    try{ obj=JSON.parse(e.target.result); }catch(_){ return fail('NOT A VALID .ledger FILE.'); }
+    if(!obj||obj.app!=='LEDGER'||!obj.salt||!obj.data) return fail('NOT A VALID LEDGER BACKUP.');
+    if(!confirm('Replace the vault on THIS device with the imported backup?\n\nYour current local vault will be overwritten. You will unlock the imported vault with ITS passphrase.')) return;
+    await idbSet('salt',obj.salt);
+    await idbSet('data',obj.data);
+    lockVault();               // drop keys; force re-unlock against the imported salt+data
+    const msg=document.getElementById('lk-msg');
+    if(msg){ msg.textContent='Vault imported — enter its passphrase to unlock.'; msg.className='lk-msg'; }
+  };
+  r.onerror=()=>fail('COULD NOT READ THE FILE.');
+  r.readAsText(file);
+}
+(function initSettings(){
+  const ex=document.getElementById('set-export');
+  if(ex) ex.addEventListener('click',exportVault);
+  const drop=document.getElementById('set-import-drop');
+  const input=document.getElementById('set-import-file');
+  if(drop&&input){
+    drop.addEventListener('click',()=>input.click());
+    drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});
+    input.addEventListener('change',e=>{ if(e.target.files&&e.target.files[0]) importVaultFile(e.target.files[0]); });
+    ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+    drop.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]) importVaultFile(e.dataTransfer.files[0]); });
+  }
+})();
 </script>
 </body>
 </html>

@@ -96,8 +96,10 @@ lands.
   and writes a learned rule to `settings.merchantRules` (consulted first by
   `categorize()`). `settings.reviewCleared` is persisted. *Weekly-streak logic is
   still basic (`reviewStreak` stored but not yet rolled over per week).*
-- [ ] **5. Encrypted export / import.** Settings panel: export the current
-  ciphertext blob to a `.ledger` file; import reads it back. (Backup / multi-device.)
+- [x] **5. Encrypted export / import.** A **Settings** tab exports the stored
+  `salt` + `data` ciphertext to a `.ledger` JSON file (`exportVault`) and imports
+  one back (`importVaultFile`, with overwrite confirm → `lockVault()` to re-unlock
+  against the imported vault). Ciphertext-only; plaintext never leaves memory.
 - [ ] **6. WebAuthn unlock.** Optional second-factor unlock via the existing
   `registerSecurityKey` / `assertSecurityKey`, gated behind a settings toggle.
 - [ ] **7. Verification.** Console/test checks proving: wrong passphrase
@@ -112,6 +114,10 @@ lands.
   `txns()`/`settings()` accessors, and `seedTransactions()`. Register, Import
   (with dedupe + confirm), and Review now read/write the vault and persist via
   `saveVault()`; `categorize()` consults learned `merchantRules`.
+- 2026-06-11 — Added a **Settings** tab with encrypted export/import (roadmap
+  item 5); bumped `sw.js` `CACHE` to `ledger-v2`. Flagged: the app still loads
+  Google Fonts from a CDN (lines 13–14), which breaks the no-network/offline
+  constraint and should be removed/self-hosted.
 
 ## Skills
 
