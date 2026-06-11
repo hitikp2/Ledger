@@ -1,11 +1,12 @@
 /* LEDGER service worker — offline app shell.
    Bumping CACHE version invalidates old caches on next load. */
-const CACHE = 'ledger-v1';
+const CACHE = 'ledger-v2';
 const SHELL = [
   'ledger.html',
   'manifest.json',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  'jetbrains-mono-latin.woff2'
 ];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

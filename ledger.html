@@ -10,9 +10,16 @@
 <meta name="apple-mobile-web-app-title" content="LEDGER">
 <link rel="manifest" href="manifest.json">
 <title>LEDGER — Receipt</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* Self-hosted JetBrains Mono (latin variable font) — no network, fully offline.
+   One woff2 covers weights 400–700; Inter was unused so it was dropped. */
+@font-face{
+  font-family:'JetBrains Mono';
+  font-style:normal;
+  font-weight:400 700;
+  font-display:swap;
+  src:url('jetbrains-mono-latin.woff2') format('woff2');
+}
 :root{
   --bg:#FFFFFF;
   --paper:#FFFFFF;
@@ -398,6 +405,7 @@ body{
       <button data-v="family">Family</button>
       <button data-v="travel">Travel</button>
       <button data-v="statement">Statement</button>
+      <button data-v="settings">Settings</button>
     </div>
 
     <!-- ============ OVERVIEW ============ -->
@@ -557,7 +565,7 @@ body{
 
       <div class="section-title" style="margin-top:18px">Results</div>
       <div id="xp-out"></div>
-      <div class="foot-note">SEEDED DEMO DATA · LIVE TXNS FLOW IN ONCE THE ENCRYPTED STORE IS WIRED</div>
+      <div class="foot-note">ENTRIES SAVE TO YOUR ENCRYPTED VAULT INSTANTLY · PERSIST ACROSS RELOADS</div>
     </div>
 
     <!-- ============ IMPORT ============ -->
@@ -586,6 +594,8 @@ body{
         <div class="section-title">Preview · First Rows</div>
         <div class="imp-preview" id="imp-preview"></div>
         <div class="foot-note" id="imp-note"></div>
+        <button class="add no-print" id="imp-confirm">▸ Add to Ledger</button>
+        <div class="foot-note" id="imp-done" hidden></div>
       </div>
 
       <div id="imp-help">
@@ -896,6 +906,41 @@ body{
       <div class="thanks">— THANK YOU FOR BANKING WITH YOURSELF —</div>
     </div>
 
+    <!-- ============ SETTINGS ============ -->
+    <div class="view" id="v-settings">
+      <div class="section-title">Backup · Encrypted Export</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Download your vault as a <b>.ledger</b> file. It is already ciphertext — safe to drop in iCloud, Dropbox, or a USB key. Only your passphrase can open it.</p>
+      <button class="add no-print" id="set-export">▸ Export Encrypted Vault</button>
+      <div class="foot-note" id="set-export-note" hidden></div>
+
+      <hr class="rule dash">
+      <div class="section-title">Restore · Import Vault</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Load a <b>.ledger</b> file from another device. This <b>replaces</b> the vault on this device; you'll re-enter that vault's passphrase to unlock it.</p>
+      <div class="imp-drop" id="set-import-drop" tabindex="0" role="button" aria-label="Import .ledger backup">
+        <div class="ic">↑</div>
+        <div class="it">Choose a .ledger file</div>
+        <div class="is">restores an encrypted backup · nothing is uploaded</div>
+        <input type="file" id="set-import-file" accept=".ledger,application/json,text/plain" hidden>
+      </div>
+      <div class="foot-note" id="set-import-note" hidden></div>
+
+      <hr class="rule dash">
+      <div class="section-title">Security · Hardware Key</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Add a <b>YubiKey or passkey</b> as a second factor. After your passphrase unlocks the vault, LEDGER also asks for the key before opening. This is an extra gate — your data stays encrypted with your passphrase, and your recovery key still works.</p>
+      <div class="li"><span class="k">Status</span><span class="dots"></span><span class="v" id="sec-status">Off</span></div>
+      <button class="add no-print" id="sec-toggle" data-on="">▸ Enable Security Key</button>
+      <div class="foot-note" id="sec-note" hidden></div>
+
+      <hr class="rule dash">
+      <div class="section-title">Self-Test · Verify Encryption</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Run live checks against your unlocked vault: a wrong passphrase is rejected, what's on disk reloads, and IndexedDB holds only ciphertext. Results also print to the browser console.</p>
+      <button class="add no-print" id="set-selftest">▸ Run Self-Test</button>
+      <div id="set-selftest-out" class="xp-list" style="margin-top:10px"></div>
+
+      <hr class="rule dash">
+      <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
+    </div>
+
     <hr class="rule dash">
     <div class="foot-note">
       LEDGER · BANK-LEVEL ENCRYPTION · READ-ONLY CONNECTIONS<br>
@@ -1121,7 +1166,9 @@ async function unlock(passphrase){
   const key=await LedgerCrypto.deriveKey(passphrase,salt);
 
   if(firstTime){
-    VAULT_KEY=key; VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString()};
+    VAULT_KEY=key;
+    VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString(),
+      transactions:seedTransactions(), settings:{merchantRules:{}, reviewStreak:0, reviewCleared:0}};
     await saveVault();
     const rk=LedgerCrypto.generateRecoveryKey();
     enterApp();
@@ -1130,14 +1177,29 @@ async function unlock(passphrase){
   }
   // returning: try to decrypt the stored blob to verify the passphrase
   const blob=await idbGet('data');
+  let data;
   try{
-    VAULT = blob ? await LedgerCrypto.decrypt(blob,key) : {...DEFAULT_VAULT};
-    VAULT_KEY=key;
-    enterApp();
+    data = blob ? await LedgerCrypto.decrypt(blob,key) : {...DEFAULT_VAULT};
   }catch(e){
     msg.textContent='Wrong passphrase — try again.'; msg.className='lk-msg err';
     document.getElementById('lk-pass').value='';
+    return;
   }
+  // passphrase verified. Enforce the optional hardware-key second factor before
+  // revealing the app (key requirement is stored inside the decrypted vault).
+  VAULT=data; VAULT_KEY=key;
+  const wa=VAULT.settings&&VAULT.settings.webauthn;
+  if(wa&&wa.credentialId){
+    msg.textContent='Touch your security key…'; msg.className='lk-msg';
+    try{
+      await LedgerCrypto.assertSecurityKey(LedgerCrypto.b64.dec(wa.credentialId));
+    }catch(e){
+      lockVault();
+      msg.textContent='Security key required — unlock cancelled.'; msg.className='lk-msg err';
+      return;
+    }
+  }
+  enterApp();
 }
 
 function enterApp(){
@@ -1145,7 +1207,7 @@ function enterApp(){
   document.body.classList.remove('locked-body');
   document.getElementById('lk-pass').value='';
   document.getElementById('lk-msg').textContent='';
-  // hydrate UI from VAULT here when wired to live data
+  hydrate();                 // render every tab from the live encrypted VAULT
 }
 function lockVault(){
   VAULT_KEY=null; VAULT=null;
@@ -1229,6 +1291,9 @@ const CAT_RULES = [
   [/uber|lyft|airline|delta|united|hotel|airbnb/i,            {c:'Travel', t:'biz', ded:1}],
 ];
 function categorize(desc){
+  // learned rules (from confirming categories in Review) take precedence
+  const learned=VAULT&&VAULT.settings&&VAULT.settings.merchantRules;
+  if(learned){ const k=desc.toLowerCase(); for(const m in learned){ if(k.includes(m)) return learned[m]; } }
   for(const [re,info] of CAT_RULES){ if(re.test(desc)) return info; }
   return null; // -> goes to Review queue
 }
@@ -1269,10 +1334,14 @@ function handleFiles(files){
     r.readAsText(file);
   });
 }
+let impRows=[];                 // last parsed rows, awaiting confirm
 function showImport(rows){
+  impRows=rows;
   const res=document.getElementById('imp-result');
   const help=document.getElementById('imp-help');
   res.hidden=false; help.hidden=true;
+  const done=document.getElementById('imp-done'); if(done)done.hidden=true;
+  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=!rows.length;
   const total=rows.reduce((s,x)=>s+x.a,0);
   const catd=rows.filter(x=>x.c).length;
   document.getElementById('imp-rows').textContent=rows.length;
@@ -1298,43 +1367,82 @@ function showImport(rows){
   ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
   ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
   drop.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files)handleFiles(e.dataTransfer.files);});
+  const confirm=document.getElementById('imp-confirm');
+  if(confirm) confirm.addEventListener('click',commitImport);
 })();
+// Append parsed rows to the vault, deduping on date+merchant+amount.
+async function commitImport(){
+  if(!VAULT||!impRows.length) return;
+  const seen=new Set(txns().map(t=>t.date+'|'+t.merchant+'|'+t.amount));
+  let added=0, dup=0;
+  impRows.forEach(r=>{
+    const key=r.d+'|'+r.m+'|'+r.a;
+    if(seen.has(key)){ dup++; return; }
+    seen.add(key);
+    VAULT.transactions.push({
+      id:uid(), date:r.d, merchant:r.m, amount:r.a, direction:'out',
+      category:r.c, account:'Imported', type:r.t||'per', deductible:r.ded||0,
+    });
+    added++;
+  });
+  await saveVault();
+  impRows=[];
+  const done=document.getElementById('imp-done');
+  if(done){ done.hidden=false; done.textContent=added+' ADDED · '+dup+' DUPLICATE'+(dup===1?'':'S')+' SKIPPED · SAVED TO ENCRYPTED LEDGER'; }
+  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=true;
+  hydrate();                 // Explore + Review reflect the new rows immediately
+}
 
-// ===== REVIEW: uncategorized queue + streak =====
-let RV_QUEUE = [
-  {m:'SQ *THE COFFEE BAR', d:'JUN 09', a:14.50, guess:'Food'},
-  {m:'PAYPAL *PROPRENTAL',  d:'JUN 07', a:220.00, guess:'Equipment', biz:true},
-  {m:'UNION 76 STATION',    d:'JUN 06', a:62.30, guess:'Auto'},
-  {m:'AMZN MKTP US*2X9',    d:'JUN 04', a:48.99, guess:'Other'},
-];
+// ===== REVIEW: uncategorized queue (live from VAULT) + streak learning =====
 const RV_CATS = ['Food','Equipment','Auto','Software','Marketing','Health','Meals 50%','Travel','Other'];
-let rvCleared=0;
+// Uncategorized transactions = anything in the vault with no category yet.
+function reviewQueue(){ return txns().filter(t=>!t.category); }
+async function reviewConfirm(tx, cat){
+  tx.category=cat;
+  // learn: remember this merchant -> category so the same name auto-tags next time
+  const s=settings();
+  s.merchantRules=s.merchantRules||{};
+  s.merchantRules[tx.merchant.toLowerCase()]={c:cat, t:tx.type||'per', ded:tx.deductible||0};
+  s.reviewCleared=(s.reviewCleared||0)+1;
+  await saveVault();
+  renderReview();
+}
 function renderReview(){
   const q=document.getElementById('rv-queue');
   if(!q) return;
   const prog=document.getElementById('rv-prog');
-  if(!RV_QUEUE.length){
+  const queue=reviewQueue();
+  const cleared=settings().reviewCleared||0;
+  if(!queue.length){
     q.innerHTML='<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div>'
       +'<div class="ds">Inbox zero. Net worth is up this week — go enjoy your Sunday.</div></div>';
-    prog.textContent=rvCleared+' CLEARED · STREAK EXTENDED';
-    document.getElementById('rv-streak-n').textContent='8';
+    if(prog) prog.textContent=cleared+' CLEARED · STREAK EXTENDED';
+    const sn=document.getElementById('rv-streak-n'); if(sn) sn.textContent=String((settings().reviewStreak||0)+1);
     return;
   }
-  prog.textContent=rvCleared+' OF '+(rvCleared+RV_QUEUE.length)+' CLEARED · ~'+Math.max(1,RV_QUEUE.length)+' MIN LEFT';
-  const x=RV_QUEUE[0];
-  // ordered chips: the guess first, then the rest
-  const cats=[x.guess, ...RV_CATS.filter(c=>c!==x.guess)];
-  q.innerHTML='<div class="rv-q"><div class="qh"><span class="qm">'+x.m
-    +'<small>'+x.d+(x.biz?' · likely business':'')+'</small></span><span class="qa">$'+x.a.toFixed(2)+'</span></div>'
-    +'<div class="rv-cats">'+cats.map((c,i)=>'<button class="'+(x.biz&&i===0?'biz':'')+'" data-c="'+c+'">'
+  if(prog) prog.textContent=cleared+' OF '+(cleared+queue.length)+' CLEARED · ~'+Math.max(1,queue.length)+' MIN LEFT';
+  const x=queue[0];
+  const g=categorize(x.merchant)||{};            // suggested category + biz hint
+  const guess=g.c||'Other', biz=g.t==='biz';
+  const cats=[guess, ...RV_CATS.filter(c=>c!==guess)];
+  const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
+  q.innerHTML='<div class="rv-q"><div class="qh"><span class="qm">'+x.merchant
+    +'<small>'+dd+(biz?' · likely business':'')+'</small></span><span class="qa">$'+x.amount.toFixed(2)+'</span></div>'
+    +'<div class="rv-cats">'+cats.map((c,i)=>'<button class="'+(biz&&i===0?'biz':'')+'" data-c="'+c+'">'
     +(i===0?'✓ '+c:c)+'</button>').join('')+'</div></div>';
   [...q.querySelectorAll('.rv-cats button')].forEach(btn=>btn.addEventListener('click',()=>{
-    RV_QUEUE.shift(); rvCleared++; renderReview();
+    reviewConfirm(x, btn.dataset.c);
   }));
 }
-renderReview();
-// Realistic seeded set spanning Jan–Jun 2026. type: biz|per, flags include ded.
-const TXNS = [
+// ===== LIVE DATA · VAULT.transactions is the single source of truth =====
+// Canonical shape: {id,date,merchant,amount,direction:'in'|'out',category,account,type:'biz'|'per',deductible:0|1}
+function txns(){ return (VAULT&&VAULT.transactions)||[]; }
+function settings(){ if(VAULT&&!VAULT.settings)VAULT.settings={}; return (VAULT&&VAULT.settings)||{}; }
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+
+// Demo set written into a FRESH vault so the app isn't empty on first run.
+// Once written these are real, persisted, encrypted rows like any other.
+const SEED_OUT = [
   {d:'2026-06-08',m:'B&H Photo',c:'Equipment',a:642.18,t:'biz',ded:1,acct:'Business'},
   {d:'2026-06-06',m:'Shell',c:'Travel',a:78.40,t:'biz',ded:1,acct:'Checking'},
   {d:'2026-06-05',m:'Soho House',c:'Meals 50%',a:214.66,t:'biz',ded:0,acct:'Amex'},
@@ -1366,6 +1474,20 @@ const TXNS = [
   {d:'2026-01-24',m:'Erewhon',c:'Food',a:183.20,t:'per',ded:0,acct:'Checking'},
   {d:'2026-01-15',m:'B&H Photo',c:'Equipment',a:868.40,t:'biz',ded:1,acct:'Business'},
 ];
+// Uncategorized demo rows (category:null) — these surface in the Review queue.
+const SEED_REVIEW = [
+  {d:'2026-06-09',m:'SQ *THE COFFEE BAR',a:14.50,acct:'Checking'},
+  {d:'2026-06-07',m:'PAYPAL *PROPRENTAL',a:220.00,acct:'Business'},
+  {d:'2026-06-06',m:'UNION 76 STATION',a:62.30,acct:'Checking'},
+  {d:'2026-06-04',m:'AMZN MKTP US*2X9',a:48.99,acct:'Checking'},
+];
+function seedTransactions(){
+  const out=SEED_OUT.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
+    category:x.c,account:x.acct,type:x.t,deductible:x.ded}));
+  const rev=SEED_REVIEW.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
+    category:null,account:x.acct,type:'per',deductible:0}));
+  return out.concat(rev);
+}
 const NOW = new Date('2026-06-10');
 const xpState = {range:'30', cat:'all', merch:'all', type:'all', from:'', to:'', min:'', max:'', group:'none'};
 
@@ -1382,17 +1504,18 @@ function xpFilter(){
   }
   const min=xpState.min!==''?parseFloat(xpState.min):null;
   const max=xpState.max!==''?parseFloat(xpState.max):null;
-  return TXNS.filter(x=>{
-    const dt=new Date(x.d);
+  return txns().filter(x=>{
+    if(!x.category) return false;              // uncategorized rows live in Review, not Explore
+    const dt=new Date(x.date);
     if(lo && dt<lo) return false;
     if(hi && dt>hi) return false;
-    if(xpState.cat!=='all' && x.c!==xpState.cat) return false;
-    if(xpState.merch!=='all' && x.m!==xpState.merch) return false;
-    if(xpState.type==='biz' && x.t!=='biz') return false;
-    if(xpState.type==='per' && x.t!=='per') return false;
-    if(xpState.type==='ded' && !x.ded) return false;
-    if(min!==null && x.a<min) return false;
-    if(max!==null && x.a>max) return false;
+    if(xpState.cat!=='all' && x.category!==xpState.cat) return false;
+    if(xpState.merch!=='all' && x.merchant!==xpState.merch) return false;
+    if(xpState.type==='biz' && x.type!=='biz') return false;
+    if(xpState.type==='per' && x.type!=='per') return false;
+    if(xpState.type==='ded' && !x.deductible) return false;
+    if(min!==null && x.amount<min) return false;
+    if(max!==null && x.amount>max) return false;
     return true;
   });
 }
@@ -1405,19 +1528,19 @@ function weekKey(dateStr){
 
 function xpRender(){
   const rows=xpFilter();
-  const total=rows.reduce((s,x)=>s+x.a,0);
+  const total=rows.reduce((s,x)=>s+x.amount,0);
   document.getElementById('xp-total').textContent=moneyFmt(total);
   document.getElementById('xp-count').textContent=rows.length+' TXN'+(rows.length===1?'':'S');
   const out=document.getElementById('xp-out');
   if(!rows.length){out.innerHTML='<div class="xp-empty">No transactions match these filters</div>';return;}
 
   if(xpState.group==='none'){
-    rows.sort((a,b)=>b.d.localeCompare(a.d));
+    rows.sort((a,b)=>b.date.localeCompare(a.date));
     out.className='xp-list';
     out.innerHTML=rows.map(x=>{
-      const dd=new Date(x.d).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
-      const tag=x.ded?'<span class="tag k">DED</span>':(x.t==='biz'?'<span class="tag">BIZ</span>':'<span class="tag">PERS</span>');
-      return '<div class="li"><span class="k">'+x.m+' <small>'+dd+' · '+x.c+'</small></span><span class="dots"></span><span class="v">'+moneyFmt(x.a)+' '+tag+'</span></div>';
+      const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
+      const tag=x.deductible?'<span class="tag k">DED</span>':(x.type==='biz'?'<span class="tag">BIZ</span>':'<span class="tag">PERS</span>');
+      return '<div class="li"><span class="k">'+x.merchant+' <small>'+dd+' · '+x.category+'</small></span><span class="dots"></span><span class="v">'+moneyFmt(x.amount)+' '+tag+'</span></div>';
     }).join('');
     return;
   }
@@ -1426,11 +1549,11 @@ function xpRender(){
   const map={};
   rows.forEach(x=>{
     let key;
-    if(xpState.group==='category')key=x.c;
-    else if(xpState.group==='merchant')key=x.m;
-    else key=weekKey(x.d);
+    if(xpState.group==='category')key=x.category;
+    else if(xpState.group==='merchant')key=x.merchant;
+    else key=weekKey(x.date);
     if(!map[key])map[key]={sum:0,n:0};
-    map[key].sum+=x.a; map[key].n++;
+    map[key].sum+=x.amount; map[key].n++;
   });
   let entries=Object.entries(map);
   if(xpState.group==='week')entries.sort((a,b)=>b[0].localeCompare(a[0]));
@@ -1470,41 +1593,195 @@ if(document.getElementById('v-explore')){
   });
   xpRender();
 }
-let todIn=0, todOut=682;  // seed matches today's tape (285+11.50+385.50)
+let regIO='out';
 const ioBtns=[...document.querySelectorAll('#ioToggle button')];
 ioBtns.forEach(b=>b.addEventListener('click',()=>{
   ioBtns.forEach(x=>x.classList.remove('on'));b.classList.add('on');regIO=b.dataset.io;
 }));
 const fmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmt0=n=>(n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const todayStr=()=>new Date().toISOString().slice(0,10);
+function todayTx(){const t=todayStr();return txns().filter(x=>(x.date||'').slice(0,10)===t);}
 function refreshTotals(){
-  document.getElementById('todIn').textContent=fmt0(todIn);
-  document.getElementById('todOut').textContent=fmt0(todOut);
-  document.getElementById('todNet').textContent=fmt0(todIn-todOut);
+  let tin=0,tout=0;
+  todayTx().forEach(x=>{ if(x.direction==='in')tin+=x.amount; else tout+=x.amount; });
+  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=fmt0(v);};
+  set('todIn',tin); set('todOut',tout); set('todNet',tin-tout);
 }
-function addEntry(){
+function renderTape(){
+  const tape=document.getElementById('tape'); if(!tape) return;
+  const list=todayTx().slice().sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+  if(!list.length){ tape.innerHTML='<div class="foot-note" style="text-align:center">No entries yet today — add one above.</div>'; return; }
+  tape.innerHTML=list.map(x=>{
+    const sign=x.direction==='in'?'pos':'neg', tm=x.time?x.time+' · ':'';
+    return '<div class="li"><span class="k">'+tm+x.merchant+' <small>'+(x.category||'—')+' · '+(x.account||'')+'</small></span><span class="dots"></span><span class="v '+sign+'">'+fmt(x.amount)+'</span></div>';
+  }).join('');
+}
+async function addEntry(){
   const m=document.getElementById('r-merchant').value.trim();
   const a=parseFloat(document.getElementById('r-amount').value);
   const cat=document.getElementById('r-cat').value;
   const acct=document.getElementById('r-acct').value;
-  if(!m||!a||a<=0){return;}
+  if(!m||!a||a<=0||!VAULT){return;}
   const now=new Date();
   const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
-  const row=document.createElement('div');
-  row.className='li flash';
-  const sign=regIO==='in'?'pos':'neg';
-  row.innerHTML='<span class="k">'+hh+':'+mm+' · '+m+' <small>'+cat+' · '+acct+'</small></span><span class="dots"></span><span class="v '+sign+'">'+fmt(a)+'</span>';
-  const tape=document.getElementById('tape');
-  tape.insertBefore(row,tape.firstChild);
-  if(regIO==='in')todIn+=a; else todOut+=a;
-  refreshTotals();
+  const hint=categorize(m)||{};
+  VAULT.transactions.push({
+    id:uid(), date:todayStr(), time:hh+':'+mm, merchant:m, amount:a,
+    direction:regIO==='in'?'in':'out', category:cat, account:acct,
+    type:hint.t||'per', deductible:hint.ded||0,
+  });
+  await saveVault();                 // persist the mutation, encrypted
+  renderTape(); refreshTotals();
+  const first=document.querySelector('#tape .li'); if(first)first.classList.add('flash');
   document.getElementById('r-merchant').value='';
   document.getElementById('r-amount').value='';
   document.getElementById('r-merchant').focus();
 }
 document.getElementById('r-add').addEventListener('click',addEntry);
 document.getElementById('r-amount').addEventListener('keydown',e=>{if(e.key==='Enter')addEntry();});
-refreshTotals();
+
+// ---------- single hydrate: every tab renders from the live VAULT ----------
+function hydrate(){
+  renderTape();
+  refreshTotals();
+  renderReview();
+  renderSecurity();
+  if(document.getElementById('v-explore')) xpRender();
+}
+
+// ===== SETTINGS: encrypted export / import (backup · multi-device) =====
+// Exports the stored ciphertext (salt + data envelope). Salt is non-secret and
+// data is AES-256-GCM ciphertext, so the file is safe at rest. Plaintext never
+// leaves memory. Restore needs this file AND the passphrase.
+async function exportVault(){
+  const note=document.getElementById('set-export-note');
+  const salt=await idbGet('salt');
+  const data=await idbGet('data');
+  if(!data||!salt){ if(note){note.hidden=false;note.textContent='NOTHING TO EXPORT YET.';} return; }
+  const payload=JSON.stringify({app:'LEDGER', fmt:1, salt, data, exportedAt:new Date().toISOString()});
+  const url=URL.createObjectURL(new Blob([payload],{type:'application/octet-stream'}));
+  const a=document.createElement('a');
+  a.href=url; a.download='ledger-'+new Date().toISOString().slice(0,10)+'.ledger';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  if(note){ note.hidden=false; note.textContent='EXPORTED · CIPHERTEXT ONLY · STORE IT SOMEWHERE SAFE'; }
+}
+function importVaultFile(file){
+  const note=document.getElementById('set-import-note');
+  const fail=m=>{ if(note){note.hidden=false;note.textContent=m;} };
+  const r=new FileReader();
+  r.onload=async e=>{
+    let obj;
+    try{ obj=JSON.parse(e.target.result); }catch(_){ return fail('NOT A VALID .ledger FILE.'); }
+    if(!obj||obj.app!=='LEDGER'||!obj.salt||!obj.data) return fail('NOT A VALID LEDGER BACKUP.');
+    if(!confirm('Replace the vault on THIS device with the imported backup?\n\nYour current local vault will be overwritten. You will unlock the imported vault with ITS passphrase.')) return;
+    await idbSet('salt',obj.salt);
+    await idbSet('data',obj.data);
+    lockVault();               // drop keys; force re-unlock against the imported salt+data
+    const msg=document.getElementById('lk-msg');
+    if(msg){ msg.textContent='Vault imported — enter its passphrase to unlock.'; msg.className='lk-msg'; }
+  };
+  r.onerror=()=>fail('COULD NOT READ THE FILE.');
+  r.readAsText(file);
+}
+// ----- optional WebAuthn second factor (tier A: an unlock gate, not key-binding) -----
+function renderSecurity(){
+  const st=document.getElementById('sec-status'), btn=document.getElementById('sec-toggle');
+  if(!st||!btn) return;
+  const on=!!(VAULT&&VAULT.settings&&VAULT.settings.webauthn&&VAULT.settings.webauthn.credentialId);
+  st.textContent=on?'On · key required at unlock':'Off';
+  btn.textContent=on?'▸ Remove Security Key':'▸ Enable Security Key';
+  btn.dataset.on=on?'1':'';
+}
+async function enableSecurityKey(){
+  const note=document.getElementById('sec-note');
+  const show=m=>{ if(note){note.hidden=false;note.textContent=m;} };
+  if(!window.PublicKeyCredential) return show('THIS BROWSER / DEVICE DOES NOT SUPPORT SECURITY KEYS.');
+  if(!VAULT) return;
+  try{
+    const cred=await LedgerCrypto.registerSecurityKey('ledger-'+(VAULT.createdAt||Date.now()),'LEDGER Vault');
+    if(!cred||!cred.rawId) return show('REGISTRATION RETURNED NO CREDENTIAL.');
+    settings().webauthn={credentialId:LedgerCrypto.b64.enc(cred.rawId)};
+    await saveVault();
+    renderSecurity();
+    show('SECURITY KEY ENABLED · REQUIRED AT NEXT UNLOCK.');
+  }catch(e){ show('COULD NOT REGISTER KEY — CANCELLED OR UNSUPPORTED.'); }
+}
+async function disableSecurityKey(){
+  const note=document.getElementById('sec-note');
+  if(!VAULT) return;
+  if(!confirm('Remove the security-key requirement? The vault will then unlock with just your passphrase.')) return;
+  delete settings().webauthn;
+  await saveVault();
+  renderSecurity();
+  if(note){ note.hidden=false; note.textContent='SECURITY KEY REMOVED.'; }
+}
+// ===== SELF-TEST: prove the security invariants against the live vault =====
+async function runSelfTest(){
+  const out=[]; const add=(name,ok,detail)=>out.push({name,ok,detail});
+  if(!VAULT||!VAULT_KEY){ add('Vault is unlocked',false,'unlock the vault first'); return out; }
+  const saltRec=await idbGet('salt');
+  const blob=await idbGet('data');
+  if(!blob){ add('Ciphertext exists on disk',false,'no data record found'); return out; }
+
+  // 1) a wrong passphrase must NOT decrypt the stored blob (GCM auth fails)
+  try{
+    const wrongKey=await LedgerCrypto.deriveKey('definitely-not-the-passphrase-'+Math.random(), LedgerCrypto.b64.dec(saltRec));
+    let threw=false;
+    try{ await LedgerCrypto.decrypt(blob,wrongKey); }catch(_){ threw=true; }
+    add('Wrong passphrase rejected', threw, threw?'GCM auth tag failed, as expected':'decrypt unexpectedly succeeded');
+  }catch(e){ add('Wrong passphrase rejected',false,String(e)); }
+
+  // 2) what is on disk decrypts with the real key and matches memory (reload-safe)
+  try{
+    const onDisk=await LedgerCrypto.decrypt(blob,VAULT_KEY);
+    const ok=onDisk&&Array.isArray(onDisk.transactions)&&onDisk.transactions.length===txns().length;
+    add('Persisted data reloads', ok, 'on-disk '+((onDisk.transactions||[]).length)+' txns · in memory '+txns().length);
+  }catch(e){ add('Persisted data reloads',false,String(e)); }
+
+  // 3) the stored record is an opaque envelope — no plaintext at rest
+  try{
+    const raw=JSON.stringify(blob);
+    const sample=(txns().find(t=>t.merchant)||{}).merchant||'';
+    const leak=sample&&raw.indexOf(sample)>-1;
+    const shaped=!!(blob.ct&&blob.iv)&&!('transactions' in blob);
+    add('IndexedDB holds only ciphertext', shaped&&!leak,
+      leak?('LEAK: plaintext "'+sample+'" found in stored record'):'envelope {iv,ct,alg}; no plaintext merchant present');
+  }catch(e){ add('IndexedDB holds only ciphertext',false,String(e)); }
+
+  return out;
+}
+async function runAndShowSelfTest(){
+  const el=document.getElementById('set-selftest-out');
+  if(el) el.innerHTML='<div class="foot-note">Running…</div>';
+  const results=await runSelfTest();
+  const passed=results.filter(r=>r.ok).length;
+  console.group('%cLEDGER self-test','font-weight:700');
+  results.forEach(r=>console.log((r.ok?'✓':'✗')+' '+r.name+' — '+r.detail));
+  console.log(passed+'/'+results.length+' checks passed'); console.groupEnd();
+  if(el) el.innerHTML=results.map(r=>
+    '<div class="li"><span class="k">'+(r.ok?'✓ ':'✗ ')+r.name+' <small>'+r.detail+'</small></span><span class="dots"></span><span class="v">'+(r.ok?'PASS':'FAIL')+'</span></div>'
+  ).join('')+'<div class="li tot"><span class="k">RESULT</span><span class="dots"></span><span class="v">'+passed+'/'+results.length+' PASS</span></div>';
+}
+(function initSettings(){
+  const ex=document.getElementById('set-export');
+  if(ex) ex.addEventListener('click',exportVault);
+  const sec=document.getElementById('sec-toggle');
+  if(sec) sec.addEventListener('click',()=>{ sec.dataset.on?disableSecurityKey():enableSecurityKey(); });
+  const st=document.getElementById('set-selftest');
+  if(st) st.addEventListener('click',runAndShowSelfTest);
+  const drop=document.getElementById('set-import-drop');
+  const input=document.getElementById('set-import-file');
+  if(drop&&input){
+    drop.addEventListener('click',()=>input.click());
+    drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});
+    input.addEventListener('change',e=>{ if(e.target.files&&e.target.files[0]) importVaultFile(e.target.files[0]); });
+    ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+    drop.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]) importVaultFile(e.dataTransfer.files[0]); });
+  }
+})();
 </script>
 </body>
 </html>
