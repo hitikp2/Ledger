@@ -80,18 +80,22 @@ color, hand-drawn SVG charts, dark/light via `data-theme`.
 Status of the production roadmap (from `SETUP.md`). Update this list as work
 lands.
 
-- [ ] **1. Single source of truth.** Replace seeded `TXNS`, the Register's
-  in-memory tape, and `RV_QUEUE` with reads/writes against `VAULT.transactions`.
-  Hydrate all UI from `VAULT` on unlock; every mutation calls `saveVault()`.
-- [ ] **2. Register persistence.** Adding an entry pushes a transaction
-  `{id, date, merchant, amount, direction, category, account, type, deductible}`
-  into `VAULT`, saves, and updates today's totals.
-- [ ] **3. Import persistence.** Append parsed/confirmed CSV rows to
-  `VAULT.transactions` with dedupe (`date+merchant+amount`); uncategorized rows
-  feed Review.
-- [ ] **4. Review learning.** Confirming a category sets it on the transaction
-  and adds a learned rule to `settings.merchantRules`; persist the weekly review
-  streak in `VAULT.settings`.
+- [x] **1. Single source of truth.** Seeded `TXNS`/`RV_QUEUE` replaced by a
+  `txns()` accessor over `VAULT.transactions`. A single `hydrate()` (called from
+  `enterApp()`) renders the Register tape, totals, Explore, and Review on unlock.
+  A fresh vault is seeded once via `seedTransactions()`; every mutation calls
+  `saveVault()`.
+- [x] **2. Register persistence.** `addEntry()` pushes a canonical transaction
+  `{id, date, time, merchant, amount, direction, category, account, type,
+  deductible}` into `VAULT`, awaits `saveVault()`, then re-renders today's tape
+  and totals (computed live from `VAULT`).
+- [x] **3. Import persistence.** An "Add to Ledger" button (`commitImport`)
+  appends parsed rows to `VAULT.transactions` with dedupe (`date+merchant+amount`)
+  and reports added/skipped; uncategorized rows (category null) feed Review.
+- [x] **4. Review learning.** Confirming a category sets it on the transaction
+  and writes a learned rule to `settings.merchantRules` (consulted first by
+  `categorize()`). `settings.reviewCleared` is persisted. *Weekly-streak logic is
+  still basic (`reviewStreak` stored but not yet rolled over per week).*
 - [ ] **5. Encrypted export / import.** Settings panel: export the current
   ciphertext blob to a `.ledger` file; import reads it back. (Backup / multi-device.)
 - [ ] **6. WebAuthn unlock.** Optional second-factor unlock via the existing
@@ -103,6 +107,11 @@ lands.
 
 - 2026-06-11 — Added `CLAUDE.md` and project skill folders under
   `.claude/skills/` to track progress and standardize common tasks.
+- 2026-06-11 — Wired the UI to the live encrypted store (roadmap items 1–4):
+  `VAULT.transactions` is now the single source of truth via `hydrate()`,
+  `txns()`/`settings()` accessors, and `seedTransactions()`. Register, Import
+  (with dedupe + confirm), and Review now read/write the vault and persist via
+  `saveVault()`; `categorize()` consults learned `merchantRules`.
 
 ## Skills
 

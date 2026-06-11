@@ -557,7 +557,7 @@ body{
 
       <div class="section-title" style="margin-top:18px">Results</div>
       <div id="xp-out"></div>
-      <div class="foot-note">SEEDED DEMO DATA · LIVE TXNS FLOW IN ONCE THE ENCRYPTED STORE IS WIRED</div>
+      <div class="foot-note">ENTRIES SAVE TO YOUR ENCRYPTED VAULT INSTANTLY · PERSIST ACROSS RELOADS</div>
     </div>
 
     <!-- ============ IMPORT ============ -->
@@ -586,6 +586,8 @@ body{
         <div class="section-title">Preview · First Rows</div>
         <div class="imp-preview" id="imp-preview"></div>
         <div class="foot-note" id="imp-note"></div>
+        <button class="add no-print" id="imp-confirm">▸ Add to Ledger</button>
+        <div class="foot-note" id="imp-done" hidden></div>
       </div>
 
       <div id="imp-help">
@@ -1121,7 +1123,9 @@ async function unlock(passphrase){
   const key=await LedgerCrypto.deriveKey(passphrase,salt);
 
   if(firstTime){
-    VAULT_KEY=key; VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString()};
+    VAULT_KEY=key;
+    VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString(),
+      transactions:seedTransactions(), settings:{merchantRules:{}, reviewStreak:0, reviewCleared:0}};
     await saveVault();
     const rk=LedgerCrypto.generateRecoveryKey();
     enterApp();
@@ -1145,7 +1149,7 @@ function enterApp(){
   document.body.classList.remove('locked-body');
   document.getElementById('lk-pass').value='';
   document.getElementById('lk-msg').textContent='';
-  // hydrate UI from VAULT here when wired to live data
+  hydrate();                 // render every tab from the live encrypted VAULT
 }
 function lockVault(){
   VAULT_KEY=null; VAULT=null;
@@ -1229,6 +1233,9 @@ const CAT_RULES = [
   [/uber|lyft|airline|delta|united|hotel|airbnb/i,            {c:'Travel', t:'biz', ded:1}],
 ];
 function categorize(desc){
+  // learned rules (from confirming categories in Review) take precedence
+  const learned=VAULT&&VAULT.settings&&VAULT.settings.merchantRules;
+  if(learned){ const k=desc.toLowerCase(); for(const m in learned){ if(k.includes(m)) return learned[m]; } }
   for(const [re,info] of CAT_RULES){ if(re.test(desc)) return info; }
   return null; // -> goes to Review queue
 }
@@ -1269,10 +1276,14 @@ function handleFiles(files){
     r.readAsText(file);
   });
 }
+let impRows=[];                 // last parsed rows, awaiting confirm
 function showImport(rows){
+  impRows=rows;
   const res=document.getElementById('imp-result');
   const help=document.getElementById('imp-help');
   res.hidden=false; help.hidden=true;
+  const done=document.getElementById('imp-done'); if(done)done.hidden=true;
+  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=!rows.length;
   const total=rows.reduce((s,x)=>s+x.a,0);
   const catd=rows.filter(x=>x.c).length;
   document.getElementById('imp-rows').textContent=rows.length;
@@ -1298,43 +1309,82 @@ function showImport(rows){
   ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
   ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
   drop.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files)handleFiles(e.dataTransfer.files);});
+  const confirm=document.getElementById('imp-confirm');
+  if(confirm) confirm.addEventListener('click',commitImport);
 })();
+// Append parsed rows to the vault, deduping on date+merchant+amount.
+async function commitImport(){
+  if(!VAULT||!impRows.length) return;
+  const seen=new Set(txns().map(t=>t.date+'|'+t.merchant+'|'+t.amount));
+  let added=0, dup=0;
+  impRows.forEach(r=>{
+    const key=r.d+'|'+r.m+'|'+r.a;
+    if(seen.has(key)){ dup++; return; }
+    seen.add(key);
+    VAULT.transactions.push({
+      id:uid(), date:r.d, merchant:r.m, amount:r.a, direction:'out',
+      category:r.c, account:'Imported', type:r.t||'per', deductible:r.ded||0,
+    });
+    added++;
+  });
+  await saveVault();
+  impRows=[];
+  const done=document.getElementById('imp-done');
+  if(done){ done.hidden=false; done.textContent=added+' ADDED · '+dup+' DUPLICATE'+(dup===1?'':'S')+' SKIPPED · SAVED TO ENCRYPTED LEDGER'; }
+  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=true;
+  hydrate();                 // Explore + Review reflect the new rows immediately
+}
 
-// ===== REVIEW: uncategorized queue + streak =====
-let RV_QUEUE = [
-  {m:'SQ *THE COFFEE BAR', d:'JUN 09', a:14.50, guess:'Food'},
-  {m:'PAYPAL *PROPRENTAL',  d:'JUN 07', a:220.00, guess:'Equipment', biz:true},
-  {m:'UNION 76 STATION',    d:'JUN 06', a:62.30, guess:'Auto'},
-  {m:'AMZN MKTP US*2X9',    d:'JUN 04', a:48.99, guess:'Other'},
-];
+// ===== REVIEW: uncategorized queue (live from VAULT) + streak learning =====
 const RV_CATS = ['Food','Equipment','Auto','Software','Marketing','Health','Meals 50%','Travel','Other'];
-let rvCleared=0;
+// Uncategorized transactions = anything in the vault with no category yet.
+function reviewQueue(){ return txns().filter(t=>!t.category); }
+async function reviewConfirm(tx, cat){
+  tx.category=cat;
+  // learn: remember this merchant -> category so the same name auto-tags next time
+  const s=settings();
+  s.merchantRules=s.merchantRules||{};
+  s.merchantRules[tx.merchant.toLowerCase()]={c:cat, t:tx.type||'per', ded:tx.deductible||0};
+  s.reviewCleared=(s.reviewCleared||0)+1;
+  await saveVault();
+  renderReview();
+}
 function renderReview(){
   const q=document.getElementById('rv-queue');
   if(!q) return;
   const prog=document.getElementById('rv-prog');
-  if(!RV_QUEUE.length){
+  const queue=reviewQueue();
+  const cleared=settings().reviewCleared||0;
+  if(!queue.length){
     q.innerHTML='<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div>'
       +'<div class="ds">Inbox zero. Net worth is up this week — go enjoy your Sunday.</div></div>';
-    prog.textContent=rvCleared+' CLEARED · STREAK EXTENDED';
-    document.getElementById('rv-streak-n').textContent='8';
+    if(prog) prog.textContent=cleared+' CLEARED · STREAK EXTENDED';
+    const sn=document.getElementById('rv-streak-n'); if(sn) sn.textContent=String((settings().reviewStreak||0)+1);
     return;
   }
-  prog.textContent=rvCleared+' OF '+(rvCleared+RV_QUEUE.length)+' CLEARED · ~'+Math.max(1,RV_QUEUE.length)+' MIN LEFT';
-  const x=RV_QUEUE[0];
-  // ordered chips: the guess first, then the rest
-  const cats=[x.guess, ...RV_CATS.filter(c=>c!==x.guess)];
-  q.innerHTML='<div class="rv-q"><div class="qh"><span class="qm">'+x.m
-    +'<small>'+x.d+(x.biz?' · likely business':'')+'</small></span><span class="qa">$'+x.a.toFixed(2)+'</span></div>'
-    +'<div class="rv-cats">'+cats.map((c,i)=>'<button class="'+(x.biz&&i===0?'biz':'')+'" data-c="'+c+'">'
+  if(prog) prog.textContent=cleared+' OF '+(cleared+queue.length)+' CLEARED · ~'+Math.max(1,queue.length)+' MIN LEFT';
+  const x=queue[0];
+  const g=categorize(x.merchant)||{};            // suggested category + biz hint
+  const guess=g.c||'Other', biz=g.t==='biz';
+  const cats=[guess, ...RV_CATS.filter(c=>c!==guess)];
+  const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
+  q.innerHTML='<div class="rv-q"><div class="qh"><span class="qm">'+x.merchant
+    +'<small>'+dd+(biz?' · likely business':'')+'</small></span><span class="qa">$'+x.amount.toFixed(2)+'</span></div>'
+    +'<div class="rv-cats">'+cats.map((c,i)=>'<button class="'+(biz&&i===0?'biz':'')+'" data-c="'+c+'">'
     +(i===0?'✓ '+c:c)+'</button>').join('')+'</div></div>';
   [...q.querySelectorAll('.rv-cats button')].forEach(btn=>btn.addEventListener('click',()=>{
-    RV_QUEUE.shift(); rvCleared++; renderReview();
+    reviewConfirm(x, btn.dataset.c);
   }));
 }
-renderReview();
-// Realistic seeded set spanning Jan–Jun 2026. type: biz|per, flags include ded.
-const TXNS = [
+// ===== LIVE DATA · VAULT.transactions is the single source of truth =====
+// Canonical shape: {id,date,merchant,amount,direction:'in'|'out',category,account,type:'biz'|'per',deductible:0|1}
+function txns(){ return (VAULT&&VAULT.transactions)||[]; }
+function settings(){ if(VAULT&&!VAULT.settings)VAULT.settings={}; return (VAULT&&VAULT.settings)||{}; }
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+
+// Demo set written into a FRESH vault so the app isn't empty on first run.
+// Once written these are real, persisted, encrypted rows like any other.
+const SEED_OUT = [
   {d:'2026-06-08',m:'B&H Photo',c:'Equipment',a:642.18,t:'biz',ded:1,acct:'Business'},
   {d:'2026-06-06',m:'Shell',c:'Travel',a:78.40,t:'biz',ded:1,acct:'Checking'},
   {d:'2026-06-05',m:'Soho House',c:'Meals 50%',a:214.66,t:'biz',ded:0,acct:'Amex'},
@@ -1366,6 +1416,20 @@ const TXNS = [
   {d:'2026-01-24',m:'Erewhon',c:'Food',a:183.20,t:'per',ded:0,acct:'Checking'},
   {d:'2026-01-15',m:'B&H Photo',c:'Equipment',a:868.40,t:'biz',ded:1,acct:'Business'},
 ];
+// Uncategorized demo rows (category:null) — these surface in the Review queue.
+const SEED_REVIEW = [
+  {d:'2026-06-09',m:'SQ *THE COFFEE BAR',a:14.50,acct:'Checking'},
+  {d:'2026-06-07',m:'PAYPAL *PROPRENTAL',a:220.00,acct:'Business'},
+  {d:'2026-06-06',m:'UNION 76 STATION',a:62.30,acct:'Checking'},
+  {d:'2026-06-04',m:'AMZN MKTP US*2X9',a:48.99,acct:'Checking'},
+];
+function seedTransactions(){
+  const out=SEED_OUT.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
+    category:x.c,account:x.acct,type:x.t,deductible:x.ded}));
+  const rev=SEED_REVIEW.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
+    category:null,account:x.acct,type:'per',deductible:0}));
+  return out.concat(rev);
+}
 const NOW = new Date('2026-06-10');
 const xpState = {range:'30', cat:'all', merch:'all', type:'all', from:'', to:'', min:'', max:'', group:'none'};
 
@@ -1382,17 +1446,18 @@ function xpFilter(){
   }
   const min=xpState.min!==''?parseFloat(xpState.min):null;
   const max=xpState.max!==''?parseFloat(xpState.max):null;
-  return TXNS.filter(x=>{
-    const dt=new Date(x.d);
+  return txns().filter(x=>{
+    if(!x.category) return false;              // uncategorized rows live in Review, not Explore
+    const dt=new Date(x.date);
     if(lo && dt<lo) return false;
     if(hi && dt>hi) return false;
-    if(xpState.cat!=='all' && x.c!==xpState.cat) return false;
-    if(xpState.merch!=='all' && x.m!==xpState.merch) return false;
-    if(xpState.type==='biz' && x.t!=='biz') return false;
-    if(xpState.type==='per' && x.t!=='per') return false;
-    if(xpState.type==='ded' && !x.ded) return false;
-    if(min!==null && x.a<min) return false;
-    if(max!==null && x.a>max) return false;
+    if(xpState.cat!=='all' && x.category!==xpState.cat) return false;
+    if(xpState.merch!=='all' && x.merchant!==xpState.merch) return false;
+    if(xpState.type==='biz' && x.type!=='biz') return false;
+    if(xpState.type==='per' && x.type!=='per') return false;
+    if(xpState.type==='ded' && !x.deductible) return false;
+    if(min!==null && x.amount<min) return false;
+    if(max!==null && x.amount>max) return false;
     return true;
   });
 }
@@ -1405,19 +1470,19 @@ function weekKey(dateStr){
 
 function xpRender(){
   const rows=xpFilter();
-  const total=rows.reduce((s,x)=>s+x.a,0);
+  const total=rows.reduce((s,x)=>s+x.amount,0);
   document.getElementById('xp-total').textContent=moneyFmt(total);
   document.getElementById('xp-count').textContent=rows.length+' TXN'+(rows.length===1?'':'S');
   const out=document.getElementById('xp-out');
   if(!rows.length){out.innerHTML='<div class="xp-empty">No transactions match these filters</div>';return;}
 
   if(xpState.group==='none'){
-    rows.sort((a,b)=>b.d.localeCompare(a.d));
+    rows.sort((a,b)=>b.date.localeCompare(a.date));
     out.className='xp-list';
     out.innerHTML=rows.map(x=>{
-      const dd=new Date(x.d).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
-      const tag=x.ded?'<span class="tag k">DED</span>':(x.t==='biz'?'<span class="tag">BIZ</span>':'<span class="tag">PERS</span>');
-      return '<div class="li"><span class="k">'+x.m+' <small>'+dd+' · '+x.c+'</small></span><span class="dots"></span><span class="v">'+moneyFmt(x.a)+' '+tag+'</span></div>';
+      const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
+      const tag=x.deductible?'<span class="tag k">DED</span>':(x.type==='biz'?'<span class="tag">BIZ</span>':'<span class="tag">PERS</span>');
+      return '<div class="li"><span class="k">'+x.merchant+' <small>'+dd+' · '+x.category+'</small></span><span class="dots"></span><span class="v">'+moneyFmt(x.amount)+' '+tag+'</span></div>';
     }).join('');
     return;
   }
@@ -1426,11 +1491,11 @@ function xpRender(){
   const map={};
   rows.forEach(x=>{
     let key;
-    if(xpState.group==='category')key=x.c;
-    else if(xpState.group==='merchant')key=x.m;
-    else key=weekKey(x.d);
+    if(xpState.group==='category')key=x.category;
+    else if(xpState.group==='merchant')key=x.merchant;
+    else key=weekKey(x.date);
     if(!map[key])map[key]={sum:0,n:0};
-    map[key].sum+=x.a; map[key].n++;
+    map[key].sum+=x.amount; map[key].n++;
   });
   let entries=Object.entries(map);
   if(xpState.group==='week')entries.sort((a,b)=>b[0].localeCompare(a[0]));
@@ -1470,41 +1535,61 @@ if(document.getElementById('v-explore')){
   });
   xpRender();
 }
-let todIn=0, todOut=682;  // seed matches today's tape (285+11.50+385.50)
+let regIO='out';
 const ioBtns=[...document.querySelectorAll('#ioToggle button')];
 ioBtns.forEach(b=>b.addEventListener('click',()=>{
   ioBtns.forEach(x=>x.classList.remove('on'));b.classList.add('on');regIO=b.dataset.io;
 }));
 const fmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmt0=n=>(n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const todayStr=()=>new Date().toISOString().slice(0,10);
+function todayTx(){const t=todayStr();return txns().filter(x=>(x.date||'').slice(0,10)===t);}
 function refreshTotals(){
-  document.getElementById('todIn').textContent=fmt0(todIn);
-  document.getElementById('todOut').textContent=fmt0(todOut);
-  document.getElementById('todNet').textContent=fmt0(todIn-todOut);
+  let tin=0,tout=0;
+  todayTx().forEach(x=>{ if(x.direction==='in')tin+=x.amount; else tout+=x.amount; });
+  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=fmt0(v);};
+  set('todIn',tin); set('todOut',tout); set('todNet',tin-tout);
 }
-function addEntry(){
+function renderTape(){
+  const tape=document.getElementById('tape'); if(!tape) return;
+  const list=todayTx().slice().sort((a,b)=>(b.time||'').localeCompare(a.time||''));
+  if(!list.length){ tape.innerHTML='<div class="foot-note" style="text-align:center">No entries yet today — add one above.</div>'; return; }
+  tape.innerHTML=list.map(x=>{
+    const sign=x.direction==='in'?'pos':'neg', tm=x.time?x.time+' · ':'';
+    return '<div class="li"><span class="k">'+tm+x.merchant+' <small>'+(x.category||'—')+' · '+(x.account||'')+'</small></span><span class="dots"></span><span class="v '+sign+'">'+fmt(x.amount)+'</span></div>';
+  }).join('');
+}
+async function addEntry(){
   const m=document.getElementById('r-merchant').value.trim();
   const a=parseFloat(document.getElementById('r-amount').value);
   const cat=document.getElementById('r-cat').value;
   const acct=document.getElementById('r-acct').value;
-  if(!m||!a||a<=0){return;}
+  if(!m||!a||a<=0||!VAULT){return;}
   const now=new Date();
   const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
-  const row=document.createElement('div');
-  row.className='li flash';
-  const sign=regIO==='in'?'pos':'neg';
-  row.innerHTML='<span class="k">'+hh+':'+mm+' · '+m+' <small>'+cat+' · '+acct+'</small></span><span class="dots"></span><span class="v '+sign+'">'+fmt(a)+'</span>';
-  const tape=document.getElementById('tape');
-  tape.insertBefore(row,tape.firstChild);
-  if(regIO==='in')todIn+=a; else todOut+=a;
-  refreshTotals();
+  const hint=categorize(m)||{};
+  VAULT.transactions.push({
+    id:uid(), date:todayStr(), time:hh+':'+mm, merchant:m, amount:a,
+    direction:regIO==='in'?'in':'out', category:cat, account:acct,
+    type:hint.t||'per', deductible:hint.ded||0,
+  });
+  await saveVault();                 // persist the mutation, encrypted
+  renderTape(); refreshTotals();
+  const first=document.querySelector('#tape .li'); if(first)first.classList.add('flash');
   document.getElementById('r-merchant').value='';
   document.getElementById('r-amount').value='';
   document.getElementById('r-merchant').focus();
 }
 document.getElementById('r-add').addEventListener('click',addEntry);
 document.getElementById('r-amount').addEventListener('keydown',e=>{if(e.key==='Enter')addEntry();});
-refreshTotals();
+
+// ---------- single hydrate: every tab renders from the live VAULT ----------
+function hydrate(){
+  renderTape();
+  refreshTotals();
+  renderReview();
+  if(document.getElementById('v-explore')) xpRender();
+}
 </script>
 </body>
 </html>
