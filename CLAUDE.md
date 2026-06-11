@@ -101,8 +101,12 @@ lands.
   `salt` + `data` ciphertext to a `.ledger` JSON file (`exportVault`) and imports
   one back (`importVaultFile`, with overwrite confirm → `lockVault()` to re-unlock
   against the imported vault). Ciphertext-only; plaintext never leaves memory.
-- [ ] **6. WebAuthn unlock.** Optional second-factor unlock via the existing
-  `registerSecurityKey` / `assertSecurityKey`, gated behind a settings toggle.
+- [x] **6. WebAuthn unlock.** Settings toggle (`enableSecurityKey` /
+  `disableSecurityKey`) registers a FIDO2 credential and stores its id in
+  `settings.webauthn`. On unlock, after the passphrase decrypts the vault,
+  `assertSecurityKey` is required before `enterApp()`; cancel/fail re-locks.
+  *This is tier-A authentication (an unlock gate), not key-binding — the
+  ciphertext is still passphrase-only, so the recovery key path is unaffected.*
 - [ ] **7. Verification.** Console/test checks proving: wrong passphrase
   rejected, data persists across reload, IndexedDB holds only ciphertext.
 
@@ -122,6 +126,10 @@ lands.
   `jetbrains-mono-latin.woff2` via an inline `@font-face`; added it to the `sw.js`
   SHELL. Unused Inter was dropped. The app now makes **zero** runtime network
   calls and is genuinely offline.
+- 2026-06-11 — Added optional WebAuthn second-factor unlock (roadmap item 6):
+  a Settings toggle registers a security key (`settings.webauthn`) and `unlock`
+  requires a successful `assertSecurityKey` after the passphrase before entering
+  the app. Tier-A gate only; crypto/key derivation unchanged.
 
 ## Skills
 

@@ -925,6 +925,13 @@ body{
       <div class="foot-note" id="set-import-note" hidden></div>
 
       <hr class="rule dash">
+      <div class="section-title">Security · Hardware Key</div>
+      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Add a <b>YubiKey or passkey</b> as a second factor. After your passphrase unlocks the vault, LEDGER also asks for the key before opening. This is an extra gate — your data stays encrypted with your passphrase, and your recovery key still works.</p>
+      <div class="li"><span class="k">Status</span><span class="dots"></span><span class="v" id="sec-status">Off</span></div>
+      <button class="add no-print" id="sec-toggle" data-on="">▸ Enable Security Key</button>
+      <div class="foot-note" id="sec-note" hidden></div>
+
+      <hr class="rule dash">
       <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
     </div>
 
@@ -1164,14 +1171,29 @@ async function unlock(passphrase){
   }
   // returning: try to decrypt the stored blob to verify the passphrase
   const blob=await idbGet('data');
+  let data;
   try{
-    VAULT = blob ? await LedgerCrypto.decrypt(blob,key) : {...DEFAULT_VAULT};
-    VAULT_KEY=key;
-    enterApp();
+    data = blob ? await LedgerCrypto.decrypt(blob,key) : {...DEFAULT_VAULT};
   }catch(e){
     msg.textContent='Wrong passphrase — try again.'; msg.className='lk-msg err';
     document.getElementById('lk-pass').value='';
+    return;
   }
+  // passphrase verified. Enforce the optional hardware-key second factor before
+  // revealing the app (key requirement is stored inside the decrypted vault).
+  VAULT=data; VAULT_KEY=key;
+  const wa=VAULT.settings&&VAULT.settings.webauthn;
+  if(wa&&wa.credentialId){
+    msg.textContent='Touch your security key…'; msg.className='lk-msg';
+    try{
+      await LedgerCrypto.assertSecurityKey(LedgerCrypto.b64.dec(wa.credentialId));
+    }catch(e){
+      lockVault();
+      msg.textContent='Security key required — unlock cancelled.'; msg.className='lk-msg err';
+      return;
+    }
+  }
+  enterApp();
 }
 
 function enterApp(){
@@ -1618,6 +1640,7 @@ function hydrate(){
   renderTape();
   refreshTotals();
   renderReview();
+  renderSecurity();
   if(document.getElementById('v-explore')) xpRender();
 }
 
@@ -1656,9 +1679,43 @@ function importVaultFile(file){
   r.onerror=()=>fail('COULD NOT READ THE FILE.');
   r.readAsText(file);
 }
+// ----- optional WebAuthn second factor (tier A: an unlock gate, not key-binding) -----
+function renderSecurity(){
+  const st=document.getElementById('sec-status'), btn=document.getElementById('sec-toggle');
+  if(!st||!btn) return;
+  const on=!!(VAULT&&VAULT.settings&&VAULT.settings.webauthn&&VAULT.settings.webauthn.credentialId);
+  st.textContent=on?'On · key required at unlock':'Off';
+  btn.textContent=on?'▸ Remove Security Key':'▸ Enable Security Key';
+  btn.dataset.on=on?'1':'';
+}
+async function enableSecurityKey(){
+  const note=document.getElementById('sec-note');
+  const show=m=>{ if(note){note.hidden=false;note.textContent=m;} };
+  if(!window.PublicKeyCredential) return show('THIS BROWSER / DEVICE DOES NOT SUPPORT SECURITY KEYS.');
+  if(!VAULT) return;
+  try{
+    const cred=await LedgerCrypto.registerSecurityKey('ledger-'+(VAULT.createdAt||Date.now()),'LEDGER Vault');
+    if(!cred||!cred.rawId) return show('REGISTRATION RETURNED NO CREDENTIAL.');
+    settings().webauthn={credentialId:LedgerCrypto.b64.enc(cred.rawId)};
+    await saveVault();
+    renderSecurity();
+    show('SECURITY KEY ENABLED · REQUIRED AT NEXT UNLOCK.');
+  }catch(e){ show('COULD NOT REGISTER KEY — CANCELLED OR UNSUPPORTED.'); }
+}
+async function disableSecurityKey(){
+  const note=document.getElementById('sec-note');
+  if(!VAULT) return;
+  if(!confirm('Remove the security-key requirement? The vault will then unlock with just your passphrase.')) return;
+  delete settings().webauthn;
+  await saveVault();
+  renderSecurity();
+  if(note){ note.hidden=false; note.textContent='SECURITY KEY REMOVED.'; }
+}
 (function initSettings(){
   const ex=document.getElementById('set-export');
   if(ex) ex.addEventListener('click',exportVault);
+  const sec=document.getElementById('sec-toggle');
+  if(sec) sec.addEventListener('click',()=>{ sec.dataset.on?disableSecurityKey():enableSecurityKey(); });
   const drop=document.getElementById('set-import-drop');
   const input=document.getElementById('set-import-file');
   if(drop&&input){
