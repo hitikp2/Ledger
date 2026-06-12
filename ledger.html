@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0A0A0A">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -222,6 +223,8 @@ body{
   .li .k{max-width:54%}
   .hero-total .amt{font-size:30px}
   .fld label{width:80px}
+  /* iOS zooms in on any input <16px and never zooms back — keep fields at 16px */
+  input,select,textarea,#lock input,.fld input,.fld select{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.view.on{animation:none}}
 </style>
