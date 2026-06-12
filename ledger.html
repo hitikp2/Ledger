@@ -9,10 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="LEDGER">
 <link rel="manifest" href="manifest.json">
-<title>LEDGER — Receipt</title>
+<title>LEDGER — The Private Ledger</title>
 <style>
-/* Self-hosted JetBrains Mono (latin variable font) — no network, fully offline.
-   One woff2 covers weights 400–700; Inter was unused so it was dropped. */
+/* Self-hosted JetBrains Mono (latin variable, weights 400–700) — no network. */
 @font-face{
   font-family:'JetBrains Mono';
   font-style:normal;
@@ -21,62 +20,31 @@
   src:url('jetbrains-mono-latin.woff2') format('woff2');
 }
 :root{
-  --bg:#FFFFFF;
-  --paper:#FFFFFF;
-  --ink:#0A0A0A;
-  --ink-2:#444444;
-  --ink-3:#8A8A8A;
-  --line:#0A0A0A;
-  --line-soft:#D6D6D6;
-  --hover:#F2F2F2;
-  --tape:#000000;
-  --invert-bg:#0A0A0A;
-  --invert-ink:#FFFFFF;
+  --bg:#FFFFFF; --paper:#FFFFFF; --ink:#0A0A0A; --ink-2:#444444; --ink-3:#8A8A8A;
+  --line:#0A0A0A; --line-soft:#D6D6D6; --soft:#D6D6D6; --hover:#F2F2F2; --code:#F6F6F6;
+  --invert-bg:#0A0A0A; --invert-ink:#FFFFFF;
 }
 [data-theme="dark"]{
-  --bg:#000000;
-  --paper:#0C0C0C;
-  --ink:#F5F5F5;
-  --ink-2:#BDBDBD;
-  --ink-3:#777777;
-  --line:#F5F5F5;
-  --line-soft:#2A2A2A;
-  --hover:#161616;
-  --tape:#F5F5F5;
-  --invert-bg:#F5F5F5;
-  --invert-ink:#0A0A0A;
+  --bg:#000000; --paper:#0C0C0C; --ink:#F5F5F5; --ink-2:#BDBDBD; --ink-3:#777777;
+  --line:#F5F5F5; --line-soft:#2A2A2A; --soft:#2A2A2A; --hover:#161616; --code:#141414;
+  --invert-bg:#F5F5F5; --invert-ink:#0A0A0A;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
-  font-family:'JetBrains Mono',monospace;
-  background:var(--bg);
-  color:var(--ink);
-  -webkit-font-smoothing:antialiased;
-  font-size:13px;line-height:1.5;
-  padding:26px 16px 60px;
-  transition:background .25s,color .25s;
+  font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-size:13px;line-height:1.5;
+  padding:26px 16px 60px;transition:background .25s,color .25s;
 }
-.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
 .num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.sans{font-family:'Inter',sans-serif}
 
-/* ---- The receipt sheet ---- */
-.receipt{
-  max-width:560px;margin:0 auto;background:var(--paper);
-  border:1px solid var(--line-soft);
-  position:relative;
-}
-/* perforated edges */
+.receipt{max-width:560px;margin:0 auto;background:var(--paper);border:1px solid var(--line-soft);position:relative}
 .perf{height:12px;display:block;width:100%}
 .perf svg{display:block;width:100%;height:12px}
 .pad{padding:22px 30px 30px}
 
-/* ---- Header ---- */
 .head{text-align:center}
-.logo{
-  font-weight:700;font-size:22px;letter-spacing:.42em;text-indent:.42em;
-}
+.logo{font-weight:700;font-size:22px;letter-spacing:.42em;text-indent:.42em}
 .logo-sub{font-size:9.5px;letter-spacing:.34em;color:var(--ink-3);margin-top:7px}
 .meta{font-size:10px;color:var(--ink-2);margin-top:14px;letter-spacing:.04em;line-height:1.9}
 .meta b{color:var(--ink);font-weight:500}
@@ -85,50 +53,38 @@ body{
 .rule.dash{border-top:1px dashed var(--line-soft)}
 .rule.dbl{border:0;height:3px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:16px 0}
 
-/* ---- Toolbar ---- */
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;max-width:560px;margin-left:auto;margin-right:auto}
 .toolbar .stamp{font-size:9px;letter-spacing:.18em;color:var(--ink-3)}
-.toggle{
-  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
-  border:1px solid var(--line);background:var(--bg);color:var(--ink);
-  padding:7px 12px;cursor:pointer;transition:all .15s;
-}
+.toggle{font-family:inherit;font-size:9.5px;letter-spacing:.14em;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 12px;cursor:pointer;transition:all .15s}
 .toggle:hover{background:var(--invert-bg);color:var(--invert-ink)}
-.toggle:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-/* ---- Tabs ---- */
-.tabs{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);margin-bottom:22px}
-.tabs button{
-  flex:1 0 auto;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
-  background:var(--bg);color:var(--ink-2);border:0;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
-  padding:10px 8px;cursor:pointer;transition:all .12s;white-space:nowrap;
-}
+.tabs{display:flex;flex-wrap:wrap;border:1px solid var(--line);margin-bottom:22px}
+.tabs button{flex:1 0 auto;font-family:inherit;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--bg);color:var(--ink-2);border:0;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:10px 8px;cursor:pointer;transition:all .12s;white-space:nowrap}
 .tabs button:hover{background:var(--hover);color:var(--ink)}
 .tabs button.on{background:var(--invert-bg);color:var(--invert-ink)}
-.tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 
-/* ---- Generic receipt rows ---- */
 .view{display:none}
 .view.on{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 
-.section-title{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin:6px 0 14px}
+.section-title{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin:18px 0 12px}
+.section-title:first-child{margin-top:4px}
 .li{display:flex;align-items:baseline;gap:6px;padding:5px 0}
-.li .k{white-space:nowrap}
+.li .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
 .li .k small{display:block;color:var(--ink-3);font-size:10px;letter-spacing:0}
-.li .dots{flex:1;border-bottom:1px dotted var(--line-soft);transform:translateY(-3px);min-width:18px}
+.li .dots{flex:1;border-bottom:1px dotted var(--line-soft);transform:translateY(-3px);min-width:12px}
 .li .v{white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.li.big .v{font-size:15px;font-weight:700}
 .li.tot{border-top:1px solid var(--line);margin-top:8px;padding-top:10px;font-weight:700}
-.li.tot .v{font-weight:700}
-.pos::before{content:"+"}
+.li.big .v{font-size:15px;font-weight:700}
+.li.tap{cursor:pointer}
+.li.tap:hover{background:var(--hover)}
+.pos{color:var(--ink)}
 .neg::before{content:"−"}
 .muted{color:var(--ink-3)}
 
-/* hero total block */
 .hero-total{text-align:center;padding:8px 0 4px}
 .hero-total .lbl{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3)}
-.hero-total .amt{font-size:40px;font-weight:700;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
+.hero-total .amt{font-size:38px;font-weight:700;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
 .hero-total .sub{font-size:10.5px;color:var(--ink-2);margin-top:6px;letter-spacing:.02em}
 
 .split{display:flex;border:1px solid var(--line-soft);margin:14px 0}
@@ -137,186 +93,121 @@ body{
 .split .l{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .split .n{font-size:14px;font-weight:500;margin-top:5px;font-variant-numeric:tabular-nums}
 
-/* ascii bar */
 .barline{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px}
-.barline .bk{width:118px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barline .bk{width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .barline .bar{flex:1;color:var(--ink);letter-spacing:-1px;overflow:hidden;white-space:nowrap}
-.barline .bv{width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.barline .bv{width:70px;text-align:right;font-variant-numeric:tabular-nums}
 
-/* tag */
 .tag{display:inline-block;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-soft);padding:1px 6px;color:var(--ink-2)}
 .tag.k{background:var(--invert-bg);color:var(--invert-ink);border-color:var(--invert-bg)}
 
-/* progress receipt-style */
 .prog{margin:12px 0}
 .prog .ph{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
-.prog .ph b{font-weight:500}
 .prog .track{font-size:11px;letter-spacing:-1px;color:var(--ink);overflow:hidden;white-space:nowrap}
 .prog .pm{display:flex;justify-content:space-between;font-size:9px;color:var(--ink-3);margin-top:4px;letter-spacing:.04em}
 
-/* member */
-.mem{border:1px solid var(--line-soft);padding:14px;margin-bottom:12px}
-.mem .mh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
-.mem .mh b{font-size:13px;letter-spacing:.06em}
-.mem .mh .tag{font-size:8px}
-
-/* filter chips */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;justify-content:center}
-.chips button{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-soft);background:var(--bg);color:var(--ink-2);padding:5px 9px;cursor:pointer}
+.chips button{font-family:inherit;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-soft);background:var(--bg);color:var(--ink-2);padding:5px 9px;cursor:pointer}
 .chips button.on{background:var(--invert-bg);color:var(--invert-ink);border-color:var(--invert-bg)}
 
-/* statement / footer barcode */
-.actions{display:flex;gap:10px;margin:18px 0 6px}
-.actions button{flex:1;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);background:var(--invert-bg);color:var(--invert-ink);padding:13px;cursor:pointer;transition:opacity .15s}
-.actions button.ghost{background:var(--bg);color:var(--ink)}
-.actions button:hover{opacity:.78}
-.barcode{text-align:center;margin-top:24px;border:1px solid var(--line);padding:20px 22px}
-.barcode .bc-title{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;letter-spacing:.52em;text-indent:.52em;color:var(--ink);margin-bottom:14px}
-.bc-bars{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;color:var(--ink)}
-.bc-bars rect{fill:currentColor}
-.barcode .no{font-size:9px;letter-spacing:.3em;color:var(--ink-3);margin-top:12px}
-.thanks{text-align:center;font-size:10px;letter-spacing:.18em;color:var(--ink-2);margin-top:16px}
-
-.foot-note{text-align:center;font-size:8.5px;letter-spacing:.14em;color:var(--ink-3);margin-top:18px;line-height:1.9}
-
-/* alerts strip */
 .alerts{border:1px solid var(--line);margin-bottom:18px}
 .alerts .ah{display:flex;justify-content:space-between;align-items:center;background:var(--invert-bg);color:var(--invert-ink);padding:7px 12px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase}
 .alerts .ai{display:flex;align-items:baseline;gap:8px;padding:8px 12px;font-size:11px;border-bottom:1px dashed var(--line-soft)}
 .alerts .ai:last-child{border-bottom:0}
-.alerts .ai .dot{font-size:8px;transform:translateY(-1px)}
 .alerts .ai .when{margin-left:auto;color:var(--ink-3);font-size:9.5px;white-space:nowrap}
 
-/* register entry */
+.chart{margin:10px 0 8px;color:var(--ink)}
+.chart svg{display:block;width:100%;height:auto}
+
 .reg-form{border:1px solid var(--line);padding:14px;margin-bottom:16px}
-.io{display:flex;gap:0;margin-bottom:12px;border:1px solid var(--line)}
-.io button{flex:1;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:var(--bg);color:var(--ink-2);border:0;padding:9px;cursor:pointer}
+.io{display:flex;margin-bottom:12px;border:1px solid var(--line)}
+.io button{flex:1;font-family:inherit;font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:var(--bg);color:var(--ink-2);border:0;padding:9px;cursor:pointer}
 .io button.on{background:var(--invert-bg);color:var(--invert-ink)}
 .io button:first-child{border-right:1px solid var(--line)}
 .fld{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.fld label{width:74px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.fld input,.fld select{flex:1;font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);color:var(--ink);border:0;border-bottom:1px dotted var(--line-soft);padding:6px 2px;outline:none}
+.fld label{width:90px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.fld input,.fld select{flex:1;font-family:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:0;border-bottom:1px dotted var(--line-soft);padding:6px 2px;outline:none}
 .fld input:focus,.fld select:focus{border-bottom:1px solid var(--ink)}
-.reg-form .add{width:100%;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;background:var(--invert-bg);color:var(--invert-ink);border:1px solid var(--line);padding:12px;cursor:pointer;margin-top:4px}
-.reg-form .add:hover{opacity:.82}
-.tape .li small{color:var(--ink-3)}
+.fld.chk{justify-content:flex-start}
+.fld.chk input{flex:0}
+.add{width:100%;font-family:inherit;font-size:10px;letter-spacing:.16em;text-transform:uppercase;background:var(--invert-bg);color:var(--invert-ink);border:1px solid var(--line);padding:12px;cursor:pointer;margin-top:8px}
+.add:hover{opacity:.85}
+.add.ghost{background:var(--bg);color:var(--ink-2)}
 .flash{animation:flash .6s ease}
 @keyframes flash{0%{background:var(--hover)}100%{background:transparent}}
 
-/* charts — hand-drawn, theme-aware via currentColor */
-.chart{margin:8px 0 18px;color:var(--ink)}
-.chart svg{display:block;width:100%;height:auto}
-.chart .ch-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.chart .ch-t{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-.chart .ch-v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.chart .ch-legend{display:flex;gap:14px;justify-content:center;margin-top:8px;font-size:9px;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase}
-.chart .ch-legend i{display:inline-block;width:9px;height:9px;margin-right:5px;transform:translateY(1px);background:currentColor}
-.chart .ch-legend i.lite{background:currentColor;opacity:.3}
-.heatwrap{display:flex;justify-content:center;color:var(--ink)}
-.heat-leg{display:flex;align-items:center;gap:5px;justify-content:center;margin-top:9px;font-size:8.5px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
-.heat-leg svg{width:64px;height:11px}
-.rings{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 8px;color:var(--ink);margin:6px 0 4px}
-.rings .rc{text-align:center}
-.rings .rc svg{width:52px;height:52px;display:block;margin:0 auto 6px}
-.rings .rc .rl{font-size:9px;letter-spacing:.04em;color:var(--ink-2);line-height:1.25}
-.rings .rc .rl small{display:block;color:var(--ink-3);font-size:8px}
-.minibar{display:grid;grid-template-columns:96px 1fr 58px;align-items:center;gap:10px;padding:5px 0;color:var(--ink)}
-.minibar .ml{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.minibar .mv{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right;color:var(--ink-2)}
-
-/* explore / query panel */
 .xp-panel{border:1px solid var(--line);padding:14px;margin-bottom:14px}
 .xp-row{margin-bottom:12px}
 .xp-row:last-child{margin-bottom:0}
 .xp-lab{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
 .xp-chips{display:flex;flex-wrap:wrap;gap:6px}
-.xp-chips button{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--soft);background:var(--bg);color:var(--ink-2);padding:6px 10px;cursor:pointer;transition:all .12s}
+.xp-chips button{font-family:inherit;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--soft);background:var(--bg);color:var(--ink-2);padding:6px 10px;cursor:pointer}
 .xp-chips button.on{background:var(--invert-bg);color:var(--invert-ink);border-color:var(--invert-bg)}
-.xp-dates{display:flex;gap:8px;align-items:center}
-.xp-dates input{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);color:var(--ink);border:0;border-bottom:1px dotted var(--soft);padding:5px 2px;outline:none}
-.xp-dates input:focus{border-bottom:1px solid var(--ink)}
-.xp-dates span{font-size:9px;color:var(--ink-3)}
-.xp-amt{display:flex;gap:8px;align-items:center}
-.xp-amt input{width:80px;font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);color:var(--ink);border:0;border-bottom:1px dotted var(--soft);padding:5px 2px;outline:none}
-.xp-result-head{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);border-bottom:3px double var(--line);padding:12px 0;margin:4px 0 0}
-.xp-result-head .xr-amt{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
-.xp-result-head .xr-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.08em}
-.xp-group{margin-top:8px}
-.xp-grow{display:grid;grid-template-columns:104px 1fr 78px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);color:var(--ink)}
+.xp-result-head{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);border-bottom:3px double var(--line);padding:12px 0;margin-top:4px}
+.xp-result-head .xr-amt{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.xp-result-head .xr-cnt{font-size:10px;color:var(--ink-3);letter-spacing:.08em}
+.xp-grow{display:grid;grid-template-columns:108px 1fr 78px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--soft);color:var(--ink)}
 .xp-grow:last-child{border-bottom:none}
 .xp-grow .gl{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.xp-grow .gl small{display:block;font-weight:400;color:var(--ink-3);font-size:9px;letter-spacing:.04em}
-.xp-grow .gbar{height:8px;background:var(--bg);position:relative;overflow:hidden}
+.xp-grow .gl small{display:block;font-weight:400;color:var(--ink-3);font-size:9px}
+.xp-grow .gbar{height:8px;background:var(--bg);position:relative;overflow:hidden;border:1px solid var(--soft)}
 .xp-grow .gbar i{position:absolute;inset:0 auto 0 0;background:currentColor;display:block}
-.xp-grow .gv{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
+.xp-grow .gv{font-size:11px;text-align:right;font-variant-numeric:tabular-nums}
 .xp-empty{text-align:center;font-size:10px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase;padding:24px 0}
-.xp-list .li small{color:var(--ink-3)}
-.xp-toggle{display:flex;border:1px solid var(--line);margin-top:10px}
-.xp-toggle button{flex:1;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:var(--bg);color:var(--ink-2);border:0;padding:8px;cursor:pointer}
-.xp-toggle button.on{background:var(--invert-bg);color:var(--invert-ink)}
-.xp-toggle button+button{border-left:1px solid var(--line)}
 
-/* import flow */
-.imp-drop{border:2px dashed var(--soft);padding:30px 18px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;color:var(--ink)}
+.imp-drop{border:2px dashed var(--soft);padding:28px 18px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;color:var(--ink)}
 .imp-drop:hover,.imp-drop.drag{border-color:var(--ink);background:var(--code)}
 .imp-drop .ic{font-size:26px;line-height:1;margin-bottom:10px}
 .imp-drop .it{font-size:12px;font-weight:600;margin-bottom:4px}
-.imp-drop .is{font-size:10px;color:var(--ink-3);letter-spacing:.04em}
-.imp-src{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px}
-.imp-src .chip{cursor:default}
-.imp-step{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--soft);align-items:flex-start}
-.imp-step:last-child{border-bottom:none}
-.imp-step .sn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;border:1px solid var(--line);width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.imp-step .sd{font-size:12px;color:var(--ink-2);line-height:1.5}
-.imp-step .sd b{color:var(--ink);font-weight:600}
-.imp-preview{margin-top:8px}
+.imp-drop .is{font-size:10px;color:var(--ink-3)}
 .imp-summary{display:flex;border:1px solid var(--line);margin:14px 0}
 .imp-summary>div{flex:1;text-align:center;padding:12px 6px;border-right:1px solid var(--soft)}
 .imp-summary>div:last-child{border-right:none}
 .imp-summary .l{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.imp-summary .n{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;margin-top:5px}
+.imp-summary .n{font-size:16px;font-weight:500;margin-top:5px}
 
-/* review ritual */
-.rv-streak{border:1px solid var(--line);padding:18px;text-align:center;margin-bottom:16px;color:var(--ink)}
-.rv-streak .big{font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:700;line-height:1}
-.rv-streak .lbl{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-top:6px}
-.rv-dots{display:flex;gap:6px;justify-content:center;margin-top:14px}
-.rv-dots i{width:13px;height:13px;border:1px solid var(--line);display:block}
-.rv-dots i.done{background:currentColor}
-.rv-dots i.miss{border-style:dashed;opacity:.4}
 .rv-q{border:1px solid var(--soft);padding:12px 14px;margin-bottom:10px;color:var(--ink)}
 .rv-q .qh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
 .rv-q .qm{font-size:13px;font-weight:600}
 .rv-q .qm small{display:block;font-size:10px;color:var(--ink-3);font-weight:400}
-.rv-q .qa{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+.rv-q .qa{font-size:14px;font-weight:700}
 .rv-cats{display:flex;flex-wrap:wrap;gap:6px}
-.rv-cats button{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--soft);background:var(--bg);color:var(--ink-2);padding:6px 10px;cursor:pointer;transition:all .12s}
+.rv-cats button{font-family:inherit;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--soft);background:var(--bg);color:var(--ink-2);padding:6px 10px;cursor:pointer}
 .rv-cats button:hover{border-color:var(--ink);color:var(--ink)}
-.rv-cats button.biz{border-left:3px solid var(--ink)}
 .rv-done{text-align:center;padding:30px 16px;color:var(--ink)}
 .rv-done .ck{font-size:34px;margin-bottom:10px}
 .rv-done .dt{font-size:14px;font-weight:600;margin-bottom:6px}
-.rv-done .ds{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
-.rv-prog{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.1em;text-align:center;margin-bottom:12px}
+.rv-done .ds{font-size:11px;color:var(--ink-3)}
+
+.actions{display:flex;gap:10px;margin:18px 0 6px}
+.actions button{flex:1;font-family:inherit;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);background:var(--invert-bg);color:var(--invert-ink);padding:13px;cursor:pointer}
+.actions button.ghost{background:var(--bg);color:var(--ink)}
+.foot-note{text-align:center;font-size:8.5px;letter-spacing:.14em;color:var(--ink-3);margin-top:18px;line-height:1.9}
+
+/* modal editor */
+.modal{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.on{display:flex}
+.md-card{background:var(--paper);border:1px solid var(--line);max-width:380px;width:100%;padding:20px;max-height:90vh;overflow:auto}
+.md-h{font-size:12px;letter-spacing:.16em;text-transform:uppercase;text-align:center;margin-bottom:16px}
+.md-actions{display:flex;gap:8px;margin-top:16px}
+.md-actions button{flex:1;font-family:inherit;font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:var(--invert-bg);color:var(--invert-ink);border:1px solid var(--line);padding:11px;cursor:pointer}
+.md-actions button.ghost{background:var(--bg);color:var(--ink)}
 
 /* lock screen */
 #lock{position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px}
 #lock .lk-inner{width:100%;max-width:360px;text-align:center}
-#lock .lk-mark{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:30px;letter-spacing:.42em;text-indent:.42em;margin-bottom:6px}
-#lock .lk-sub{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-3);margin-bottom:34px}
+#lock .lk-mark{font-weight:700;font-size:30px;letter-spacing:.42em;text-indent:.42em;margin-bottom:6px}
+#lock .lk-sub{font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-3);margin-bottom:34px}
 #lock .lk-field{border:1px solid var(--line);display:flex;align-items:center;padding:0 0 0 14px;margin-bottom:12px}
-#lock .lk-field span{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
-#lock input{flex:1;font-family:'JetBrains Mono',monospace;font-size:14px;background:transparent;color:var(--ink);border:0;padding:14px 12px;outline:none;letter-spacing:.1em}
-#lock .lk-btn{width:100%;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;background:var(--invert-bg);color:var(--invert-ink);border:1px solid var(--line);padding:15px;cursor:pointer;transition:opacity .15s}
-#lock .lk-btn:hover{opacity:.82}
-#lock .lk-msg{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;margin-top:14px;min-height:14px;color:var(--ink-3)}
-#lock .lk-msg.err{color:var(--ink)}
-#lock .lk-foot{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:30px;line-height:1.9}
-#lock .lk-hint{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink-3);margin-top:6px;letter-spacing:.04em}
+#lock .lk-field span{font-size:9px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
+#lock input{flex:1;font-family:inherit;font-size:14px;background:transparent;color:var(--ink);border:0;padding:14px 12px;outline:none;letter-spacing:.1em}
+#lock .lk-btn{width:100%;font-family:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;background:var(--invert-bg);color:var(--invert-ink);border:1px solid var(--line);padding:15px;cursor:pointer}
+#lock .lk-msg{font-size:10px;margin-top:14px;min-height:14px;color:var(--ink-3)}
+#lock .lk-foot{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:30px;line-height:1.9}
+#lock .lk-hint{font-size:9px;color:var(--ink-3);margin-top:6px}
 .locked-body{overflow:hidden;height:100vh}
 #lockbar{display:flex;justify-content:flex-end;max-width:560px;margin:0 auto 8px}
-#lockNow{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 11px;cursor:pointer;text-transform:uppercase}
-#lockNow:hover{background:var(--invert-bg);color:var(--invert-ink)}
+#lockNow{font-family:inherit;font-size:9px;letter-spacing:.12em;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 11px;cursor:pointer;text-transform:uppercase}
 
 @media print{
   body{background:#fff;padding:0}
@@ -328,8 +219,9 @@ body{
 @media (max-width:520px){
   .pad{padding:20px 18px 26px}
   .tabs button{flex:1 0 28%}
-  .barline .bk{width:84px}
-  .hero-total .amt{font-size:32px}
+  .li .k{max-width:54%}
+  .hero-total .amt{font-size:30px}
+  .fld label{width:80px}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.view.on{animation:none}}
 </style>
@@ -342,51 +234,32 @@ body{
     <div class="lk-sub">The Private Ledger</div>
     <div class="lk-field">
       <span id="lk-mode-label">Passphrase</span>
-      <input id="lk-pass" type="password" inputmode="text" autocomplete="current-password" placeholder="••••••••••••" aria-label="Passphrase" autofocus>
+      <input id="lk-pass" type="password" autocomplete="current-password" placeholder="••••••••••••" aria-label="Passphrase" autofocus>
     </div>
     <button class="lk-btn" id="lk-unlock">Unlock Vault</button>
     <div class="lk-msg" id="lk-msg"></div>
     <div class="lk-hint" id="lk-hint"></div>
-    <div class="lk-foot">
-      AES-256 · ENCRYPTED ON THIS DEVICE<br>
-      NO PASSWORD RESET — KEEP YOUR RECOVERY KEY SAFE
-    </div>
+    <div class="lk-foot">AES-256 · ENCRYPTED ON THIS DEVICE<br>NO PASSWORD RESET — KEEP YOUR RECOVERY KEY SAFE</div>
   </div>
 </div>
 
 <div id="lockbar" class="no-print"><button id="lockNow" aria-label="Lock vault">⊘ Lock</button></div>
 
-<div class="toolbar no-print" style="max-width:560px;margin:0 auto 12px">
-  <span class="stamp">REG #04 · TERMINAL H · LOS ANGELES</span>
+<div class="toolbar no-print">
+  <span class="stamp" id="stamp">PRIVATE LEDGER</span>
   <button class="toggle" id="themeBtn" aria-label="Toggle dark mode">◐ DARK MODE</button>
 </div>
 
 <div class="receipt">
   <span class="perf"><svg preserveAspectRatio="none" viewBox="0 0 560 12"><path d="M0,12 L0,6 Q7,0 14,6 T28,6 T42,6 T56,6 T70,6 T84,6 T98,6 T112,6 T126,6 T140,6 T154,6 T168,6 T182,6 T196,6 T210,6 T224,6 T238,6 T252,6 T266,6 T280,6 T294,6 T308,6 T322,6 T336,6 T350,6 T364,6 T378,6 T392,6 T406,6 T420,6 T434,6 T448,6 T462,6 T476,6 T490,6 T504,6 T518,6 T532,6 T546,6 T560,6 L560,12 Z" fill="var(--paper)" stroke="var(--line-soft)" stroke-width="1"/></svg></span>
-
   <div class="pad">
-    <!-- HEADER -->
     <div class="head">
       <div class="logo">LEDGER</div>
       <div class="logo-sub">PERSONAL FINANCE · RECEIPT</div>
-      <div class="meta">
-        ACCOUNT&nbsp; <b>H. — PRIVATE</b><br>
-        PERIOD&nbsp;&nbsp;&nbsp; <b>01 JAN — 10 JUN 2026</b><br>
-        ISSUED&nbsp;&nbsp;&nbsp; <b>JUN 10 2026 · 09:42 PST</b>
-      </div>
+      <div class="meta" id="head-meta"></div>
     </div>
     <hr class="rule dbl">
 
-    <!-- ALERTS -->
-    <div class="alerts no-print" id="alerts">
-      <div class="ah"><span>● Needs Attention</span><span>4 ITEMS</span></div>
-      <div class="ai"><span class="dot">■</span><span>Q2 estimated tax — $11,840</span><span class="when">DUE IN 5D · JUN 15</span></div>
-      <div class="ai"><span class="dot">■</span><span>Invoice #1043 overdue — $4,200</span><span class="when">12 DAYS LATE</span></div>
-      <div class="ai"><span class="dot">□</span><span>3 receipts need review &amp; category</span><span class="when">RECEIPTS</span></div>
-      <div class="ai"><span class="dot">□</span><span>QuickBooks renews — $90</span><span class="when">IN 3 DAYS</span></div>
-    </div>
-
-    <!-- TABS -->
     <div class="tabs no-print" id="tabs">
       <button class="on" data-v="overview">Overview</button>
       <button data-v="register">Register</button>
@@ -408,1424 +281,733 @@ body{
       <button data-v="settings">Settings</button>
     </div>
 
-    <!-- ============ OVERVIEW ============ -->
-    <div class="view on" id="v-overview">
-      <div class="section-title">Net Worth · Statement</div>
-      <div class="hero-total">
-        <div class="lbl">Total Net Worth</div>
-        <div class="amt">$1,284,650</div>
-        <div class="sub">▲ $38,420 (3.08%) MTD&nbsp;&nbsp;·&nbsp;&nbsp;▲ $146,900 YTD</div>
-      </div>
-      <div class="split">
-        <div><div class="l">Assets</div><div class="n">$1,612,400</div></div>
-        <div><div class="l">Liabilities</div><div class="n">$327,750</div></div>
-        <div><div class="l">Liquid</div><div class="n">$214,180</div></div>
-      </div>
-      <hr class="rule dash">
-      <div class="chart"><div class="ch-head"><span class="ch-t">Net Worth · 6-Month Trend</span><span class="ch-v">+$146,900 YTD</span></div><svg viewBox="0 0 300 92" preserveAspectRatio="none" aria-hidden="true"><line x1="8" y1="72" x2="292" y2="72" stroke="currentColor" stroke-opacity=".25" stroke-width="0.6"/><polygon points="8,72 8.0,66.2 64.8,56.1 121.6,58.9 178.4,43.9 235.2,30.5 292.0,17.8 292,72" fill="currentColor" fill-opacity="0.07"/><polyline points="8.0,66.2 64.8,56.1 121.6,58.9 178.4,43.9 235.2,30.5 292.0,17.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="292.0" cy="17.8" r="2.6" fill="currentColor"/><circle cx="8.0" cy="66.2" r="1.8" fill="currentColor" fill-opacity=".5"/><text x="8.0" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">JAN</text><text x="64.8" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">FEB</text><text x="121.6" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">MAR</text><text x="178.4" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">APR</text><text x="235.2" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">MAY</text><text x="292.0" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">JUN</text></svg></div>
-      <hr class="rule dash">
-      <div class="section-title">Accounts</div>
-      <div class="li"><span class="k">Operating Checking <small>Chase ····4821</small></span><span class="dots"></span><span class="v">$18,940</span></div>
-      <div class="li"><span class="k">High-Yield Reserve <small>Marcus · 4.10%</small></span><span class="dots"></span><span class="v">$86,500</span></div>
-      <div class="li"><span class="k">Taxable Brokerage <small>Fidelity</small></span><span class="dots"></span><span class="v">$172,300</span></div>
-      <div class="li"><span class="k">Roth IRA <small>Fidelity</small></span><span class="dots"></span><span class="v">$94,750</span></div>
-      <div class="li"><span class="k">Solo 401(k) <small>Schwab</small></span><span class="dots"></span><span class="v">$148,200</span></div>
-      <div class="li"><span class="k">Digital Assets <small>Cold storage</small></span><span class="dots"></span><span class="v">$41,310</span></div>
-      <div class="li"><span class="k">Primary Residence <small>Los Angeles · est.</small></span><span class="dots"></span><span class="v">$985,000</span></div>
-      <div class="li"><span class="k">Vehicles & Equipment</span><span class="dots"></span><span class="v">$65,400</span></div>
-      <div class="li"><span class="k">Mortgage <small>Wells Fargo · 5.25%</small></span><span class="dots"></span><span class="v neg">$298,400</span></div>
-      <div class="li"><span class="k">Auto Loan <small>Toyota FS · 3.9%</small></span><span class="dots"></span><span class="v neg">$21,850</span></div>
-      <div class="li"><span class="k">Amex Platinum <small>Paid monthly</small></span><span class="dots"></span><span class="v neg">$7,500</span></div>
-      <div class="li tot"><span class="k">NET POSITION</span><span class="dots"></span><span class="v">$1,284,650</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Year / Year · vs. Jun 2025</div>
-      <div class="li"><span class="k">Net Worth</span><span class="dots"></span><span class="v">$1,061,400 → $1,284,650 <span class="muted">+21.0%</span></span></div>
-      <div class="li"><span class="k">Business Net (YTD)</span><span class="dots"></span><span class="v">$41,800 → $54,220 <span class="muted">+29.7%</span></span></div>
-      <div class="li"><span class="k">Spending (YTD)</span><span class="dots"></span><span class="v">$88,400 → $93,120 <span class="muted">+5.3%</span></span></div>
-      <div class="li"><span class="k">Savings Rate</span><span class="dots"></span><span class="v">31.0% → 37.6% <span class="muted">+6.6pt</span></span></div>
-    </div>
-
-    <!-- ============ REGISTER ============ -->
-    <div class="view" id="v-register">
-      <div class="section-title">Live Register · Print to Tape</div>
-      <div class="reg-form no-print">
-        <div class="io" id="ioToggle">
-          <button class="on" data-io="out">− Money Out</button>
-          <button data-io="in">+ Money In</button>
-        </div>
-        <div class="fld"><label>Merchant</label><input id="r-merchant" type="text" placeholder="e.g. B&H Photo" autocomplete="off"></div>
-        <div class="fld"><label>Amount</label><input id="r-amount" type="number" inputmode="decimal" placeholder="0.00" step="0.01" min="0"></div>
-        <div class="fld"><label>Category</label>
-          <select id="r-cat">
-            <option>Equipment</option><option>Travel</option><option>Meals 50%</option>
-            <option>Software</option><option>Marketing</option><option>Insurance</option>
-            <option>Food</option><option>Health</option><option>Auto</option>
-            <option>Owner Draw</option><option>Consulting</option><option>Other</option>
-          </select>
-        </div>
-        <div class="fld"><label>Account</label>
-          <select id="r-acct"><option>Operating Checking</option><option>Amex Platinum</option><option>HY Reserve</option><option>Business</option></select>
-        </div>
-        <button class="add" id="r-add">▸ Print to Tape</button>
-      </div>
-      <div class="split">
-        <div><div class="l">Today In</div><div class="n" id="todIn">$0</div></div>
-        <div><div class="l">Today Out</div><div class="n" id="todOut">$682</div></div>
-        <div><div class="l">Today Net</div><div class="n" id="todNet">−$682</div></div>
-      </div>
-      <div class="section-title">Today's Tape</div>
-      <div class="tape" id="tape">
-        <div class="li"><span class="k">09:14 · Equinox <small>Health · Amex</small></span><span class="dots"></span><span class="v neg">$285.00</span></div>
-        <div class="li"><span class="k">08:02 · Blue Bottle <small>Food · Checking</small></span><span class="dots"></span><span class="v neg">$11.50</span></div>
-        <div class="li"><span class="k">07:48 · Shell <small>Auto · Checking</small></span><span class="dots"></span><span class="v neg">$385.50</span></div>
-      </div>
-      <div class="foot-note">ENTRIES POST TO CASH FLOW &amp; RECEIPTS INSTANTLY · UNDO WITHIN 24H</div>
-    </div>
-
-    <!-- ============ EXPLORE ============ -->
-    <div class="view" id="v-explore">
-      <div class="section-title">Explore · Query Your Spending</div>
-      <div class="xp-panel">
-        <div class="xp-row">
-          <div class="xp-lab">Range</div>
-          <div class="xp-chips" id="xp-range">
-            <button data-r="7">This Week</button>
-            <button data-r="30" class="on">30 Days</button>
-            <button data-r="90">90 Days</button>
-            <button data-r="ytd">YTD</button>
-            <button data-r="all">All</button>
-          </div>
-        </div>
-        <div class="xp-row">
-          <div class="xp-lab">Custom Dates</div>
-          <div class="xp-dates">
-            <input id="xp-from" type="date" aria-label="From date">
-            <span>to</span>
-            <input id="xp-to" type="date" aria-label="To date">
-          </div>
-        </div>
-        <div class="xp-row">
-          <div class="xp-lab">Type</div>
-          <div class="xp-chips" id="xp-type">
-            <button data-t="all" class="on">All</button>
-            <button data-t="biz">Business</button>
-            <button data-t="per">Personal</button>
-            <button data-t="ded">Deductible</button>
-          </div>
-        </div>
-        <div class="xp-row">
-          <div class="xp-lab">Category</div>
-          <div class="xp-chips" id="xp-cat">
-            <button data-c="all" class="on">All</button>
-            <button data-c="Food">Food</button>
-            <button data-c="Equipment">Equipment</button>
-            <button data-c="Travel">Travel</button>
-            <button data-c="Software">Software</button>
-            <button data-c="Marketing">Marketing</button>
-            <button data-c="Insurance">Insurance</button>
-            <button data-c="Health">Health</button>
-            <button data-c="Auto">Auto</button>
-            <button data-c="Meals 50%">Meals</button>
-          </div>
-        </div>
-        <div class="xp-row">
-          <div class="xp-lab">Merchant</div>
-          <div class="xp-chips" id="xp-merch">
-            <button data-m="all" class="on">All</button>
-            <button data-m="Erewhon">Erewhon</button>
-            <button data-m="B&amp;H Photo">B&amp;H Photo</button>
-            <button data-m="Equinox">Equinox</button>
-            <button data-m="Shell">Shell</button>
-            <button data-m="Adobe">Adobe</button>
-            <button data-m="Soho House">Soho House</button>
-          </div>
-        </div>
-        <div class="xp-row">
-          <div class="xp-lab">Amount Range</div>
-          <div class="xp-amt">
-            <span style="font-size:9px;color:var(--ink-3)">MIN $</span>
-            <input id="xp-min" type="number" inputmode="decimal" placeholder="0">
-            <span style="font-size:9px;color:var(--ink-3)">MAX $</span>
-            <input id="xp-max" type="number" inputmode="decimal" placeholder="∞">
-          </div>
-        </div>
-      </div>
-
-      <div class="xp-result-head">
-        <span class="xr-amt" id="xp-total">$0.00</span>
-        <span class="xr-cnt" id="xp-count">0 TXNS</span>
-      </div>
-
-      <div class="xp-toggle" id="xp-groupby">
-        <button data-g="none" class="on">List</button>
-        <button data-g="category">By Category</button>
-        <button data-g="merchant">By Merchant</button>
-        <button data-g="week">By Week</button>
-      </div>
-
-      <div class="section-title" style="margin-top:18px">Results</div>
-      <div id="xp-out"></div>
-      <div class="foot-note">ENTRIES SAVE TO YOUR ENCRYPTED VAULT INSTANTLY · PERSIST ACROSS RELOADS</div>
-    </div>
-
-    <!-- ============ IMPORT ============ -->
-    <div class="view" id="v-import">
-      <div class="section-title">Import · Get Your Year In</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:16px;line-height:1.6">Don't type five months by hand. Export CSVs from each bank &amp; card and drop them here — LEDGER parses and auto-categorizes every row.</p>
-
-      <div class="imp-drop" id="imp-drop" tabindex="0" role="button" aria-label="Upload CSV statement">
-        <div class="ic">↓</div>
-        <div class="it">Drop CSV statements here</div>
-        <div class="is">or tap to choose files · .csv from any bank</div>
-        <input type="file" id="imp-file" accept=".csv,text/csv" multiple hidden>
-      </div>
-
-      <div class="imp-src">
-        <span class="chip">Chase</span><span class="chip">Amex</span><span class="chip">Marcus</span>
-        <span class="chip">Fidelity</span><span class="chip">QuickBooks</span><span class="chip">Generic CSV</span>
-      </div>
-
-      <div id="imp-result" hidden>
-        <div class="imp-summary">
-          <div><div class="l">Rows</div><div class="n" id="imp-rows">0</div></div>
-          <div><div class="l">Categorized</div><div class="n" id="imp-cat">0</div></div>
-          <div><div class="l">Total</div><div class="n" id="imp-tot">$0</div></div>
-        </div>
-        <div class="section-title">Preview · First Rows</div>
-        <div class="imp-preview" id="imp-preview"></div>
-        <div class="foot-note" id="imp-note"></div>
-        <button class="add no-print" id="imp-confirm">▸ Add to Ledger</button>
-        <div class="foot-note" id="imp-done" hidden></div>
-      </div>
-
-      <div id="imp-help">
-        <hr class="rule dash">
-        <div class="section-title">How To Pull Your Statements</div>
-        <div class="imp-step"><span class="sn">1</span><span class="sd">In each bank / card site, open <b>Statements</b> or <b>Activity</b>, set the range <b>Jan 1 → today</b>.</span></div>
-        <div class="imp-step"><span class="sn">2</span><span class="sd">Choose <b>Download</b> and pick <b>CSV</b> (sometimes "Spreadsheet" or "Excel").</span></div>
-        <div class="imp-step"><span class="sn">3</span><span class="sd">Drop every file above at once. Duplicates across files are detected and merged.</span></div>
-        <div class="imp-step"><span class="sn">4</span><span class="sd">For balances &amp; investments, just enter <b>today's snapshot</b> — no history needed.</span></div>
-        <div class="foot-note">DEMO · PARSING RUNS LOCALLY IN YOUR BROWSER · NOTHING IS UPLOADED</div>
-      </div>
-    </div>
-
-    <!-- ============ REVIEW ============ -->
-    <div class="view" id="v-review">
-      <div class="section-title">Sunday Review · 5-Minute Ritual</div>
-      <div class="rv-streak">
-        <div class="big" id="rv-streak-n">7</div>
-        <div class="lbl">Week Review Streak</div>
-        <div class="rv-dots" id="rv-dots">
-          <i class="done"></i><i class="done"></i><i class="miss"></i><i class="done"></i>
-          <i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i>
-        </div>
-      </div>
-
-      <div class="rv-prog" id="rv-prog">0 OF 4 CLEARED · ~2 MIN LEFT</div>
-      <div class="section-title">Needs A Category</div>
-      <div id="rv-queue"></div>
-
-      <div class="foot-note">CONFIRMING A CATEGORY TEACHES LEDGER · NEXT TIME IT AUTO-TAGS THE SAME MERCHANT</div>
-    </div>
-
-    <!-- ============ CASH FLOW ============ -->
-    <div class="view" id="v-cashflow">
-      <div class="section-title">6-Month Cash Flow</div>
-      <div class="chart"><div class="ch-head"><span class="ch-t">In vs Out · 6 Months</span><span class="ch-v">avg +$9.0K/mo</span></div><svg viewBox="0 0 300 104" preserveAspectRatio="none" aria-hidden="true"><line x1="10" y1="80" x2="290" y2="80" stroke="currentColor" stroke-opacity=".3" stroke-width="0.6"/><rect x="18.3" y="22.9" width="14.0" height="57.1" fill="currentColor" fill-opacity=".88"/><rect x="34.3" y="41.5" width="14.0" height="38.5" fill="currentColor" fill-opacity=".30"/><text x="33.3" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">JAN</text><rect x="65.0" y="16.7" width="14.0" height="63.3" fill="currentColor" fill-opacity=".88"/><rect x="81.0" y="40.7" width="14.0" height="39.3" fill="currentColor" fill-opacity=".30"/><text x="80.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">FEB</text><rect x="111.7" y="28.8" width="14.0" height="51.2" fill="currentColor" fill-opacity=".88"/><rect x="127.7" y="38.4" width="14.0" height="41.6" fill="currentColor" fill-opacity=".30"/><text x="126.7" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">MAR</text><rect x="158.3" y="12.0" width="14.0" height="68.0" fill="currentColor" fill-opacity=".88"/><rect x="174.3" y="39.1" width="14.0" height="40.9" fill="currentColor" fill-opacity=".30"/><text x="173.3" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">APR</text><rect x="205.0" y="14.3" width="14.0" height="65.7" fill="currentColor" fill-opacity=".88"/><rect x="221.0" y="42.3" width="14.0" height="37.7" fill="currentColor" fill-opacity=".30"/><text x="220.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">MAY</text><rect x="251.7" y="15.7" width="14.0" height="64.3" fill="currentColor" fill-opacity=".88"/><rect x="267.7" y="39.9" width="14.0" height="40.1" fill="currentColor" fill-opacity=".30"/><text x="266.7" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">JUN</text></svg><div class="ch-legend"><span><i></i>Income</span><span><i class="lite"></i>Spending</span></div></div>
-      <div class="section-title">June · Money In</div>
-      <div class="barline"><span class="bk">Owner Draw</span><span class="bar">████████████████</span><span class="bv">$12,500</span></div>
-      <div class="barline"><span class="bk">Consulting</span><span class="bar">██████████</span><span class="bv">$7,800</span></div>
-      <div class="barline"><span class="bk">Equip. Resale</span><span class="bar">███</span><span class="bv">$2,510</span></div>
-      <div class="barline"><span class="bk">Dividends</span><span class="bar">██</span><span class="bv">$1,760</span></div>
-      <div class="barline"><span class="bk">Interest</span><span class="bar">█</span><span class="bv">$290</span></div>
-      <div class="li tot"><span class="k">TOTAL IN</span><span class="dots"></span><span class="v">$24,860</span></div>
-      <hr class="rule dash">
-      <div class="section-title">June · Money Out</div>
-      <div class="barline"><span class="bk">Housing</span><span class="bar">█████████████</span><span class="bv">$4,820</span></div>
-      <div class="barline"><span class="bk">Tax Set-Aside</span><span class="bar">██████████</span><span class="bv">$3,920</span></div>
-      <div class="barline"><span class="bk">Everything Else</span><span class="bar">█████</span><span class="bv">$1,910</span></div>
-      <div class="barline"><span class="bk">Food & Dining</span><span class="bar">████</span><span class="bv">$1,580</span></div>
-      <div class="barline"><span class="bk">Family & Kids</span><span class="bar">████</span><span class="bv">$1,400</span></div>
-      <div class="barline"><span class="bk">Auto & Transit</span><span class="bar">███</span><span class="bv">$1,210</span></div>
-      <div class="barline"><span class="bk">Health & Recovery</span><span class="bar">██</span><span class="bv">$680</span></div>
-      <div class="li tot"><span class="k">TOTAL OUT</span><span class="dots"></span><span class="v">$15,520</span></div>
-      <hr class="rule">
-      <div class="li big"><span class="k">NET CASH FLOW</span><span class="dots"></span><span class="v">+$9,340</span></div>
-      <div class="foot-note">SAVINGS RATE 37.6% · 47 TRANSACTIONS RECONCILED</div>
-      <hr class="rule dbl">
-      <div class="section-title">Forecast · Operating Cash Runway</div>
-      <div class="foot-note" style="margin:0 0 12px">FROM RECURRING INFLOWS &amp; SCHEDULED BILLS · START $18,940</div>
-      <div class="li"><span class="k">Next 30 days <small>incl. Q2 tax Jun 15</small></span><span class="dots"></span><span class="v">→ $8,800</span></div>
-      <div class="li"><span class="k">Next 60 days</span><span class="dots"></span><span class="v">→ $10,470</span></div>
-      <div class="li"><span class="k">Next 90 days</span><span class="dots"></span><span class="v">→ $12,140</span></div>
-      <hr class="rule dash">
-      <div class="li"><span class="k">Lowest balance ahead <small>Jun 15 · after Q2 tax</small></span><span class="dots"></span><span class="v">$4,210</span></div>
-      <div class="li"><span class="k">Buffer floor <small>target minimum</small></span><span class="dots"></span><span class="v">$5,000</span></div>
-      <div class="li tot"><span class="k">⚠ DIPS BELOW FLOOR</span><span class="dots"></span><span class="v">−$790 · 4 DAYS</span></div>
-      <div class="foot-note">SUGGESTION · MOVE $1,000 FROM HY RESERVE BEFORE JUN 15</div>
-    </div>
-
-    <!-- ============ INVEST ============ -->
-    <div class="view" id="v-invest">
-      <div class="section-title">Portfolio · $456,560 Invested</div>
-      <div class="chart"><svg viewBox="0 0 160 160" aria-hidden="true" style="max-width:150px;margin:4px auto;display:block"><circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.10" stroke-width="22"/><circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="1.0" stroke-width="22" stroke-dasharray="179.82 159.47" stroke-dashoffset="0.00" transform="rotate(-90 80 80)"/><circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.6" stroke-width="22" stroke-dasharray="78.04 261.25" stroke-dashoffset="-179.82" transform="rotate(-90 80 80)"/><circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.38" stroke-width="22" stroke-dasharray="47.50 291.79" stroke-dashoffset="-257.86" transform="rotate(-90 80 80)"/><circle cx="80" cy="80" r="54" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="22" stroke-dasharray="33.93 305.36" stroke-dashoffset="-305.36" transform="rotate(-90 80 80)"/><text x="80" y="76" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">$456.6K</text><text x="80" y="92" text-anchor="middle" font-size="7" letter-spacing="1.5" fill="currentColor" fill-opacity=".6">INVESTED</text></svg></div>
-      <div class="barline"><span class="bk">US Equities 53%</span><span class="bar">█████████████████</span><span class="bv">$242K</span></div>
-      <div class="barline"><span class="bk">International 23%</span><span class="bar">███████</span><span class="bv">$105K</span></div>
-      <div class="barline"><span class="bk">Bonds/Cash 14%</span><span class="bar">████</span><span class="bv">$64K</span></div>
-      <div class="barline"><span class="bk">Digital 10%</span><span class="bar">███</span><span class="bv">$46K</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Holdings · Cost vs. Value</div>
-      <div class="li"><span class="k">VTI <small>412 sh · Total US</small></span><span class="dots"></span><span class="v">$127,310 <span class="muted">+29%</span></span></div>
-      <div class="li"><span class="k">VXUS <small>980 sh · Intl</small></span><span class="dots"></span><span class="v">$66,640 <span class="muted">+17%</span></span></div>
-      <div class="li"><span class="k">SCHD <small>610 sh · Dividend</small></span><span class="dots"></span><span class="v">$51,180 <span class="muted">+14%</span></span></div>
-      <div class="li"><span class="k">BTC <small>0.42 · cold</small></span><span class="dots"></span><span class="v">$41,310 <span class="muted">+109%</span></span></div>
-      <div class="li"><span class="k">BND <small>520 sh · Bond</small></span><span class="dots"></span><span class="v">$38,170 <span class="muted">−1%</span></span></div>
-      <div class="li"><span class="k">NVDA <small>180 sh · Individual</small></span><span class="dots"></span><span class="v">$30,960 <span class="muted">+90%</span></span></div>
-      <div class="li tot"><span class="k">UNREALIZED GAIN</span><span class="dots"></span><span class="v">+$81,270</span></div>
-      <div class="foot-note">HARVESTABLE LOSSES $530 · EST. LTCG EXPOSURE $12,190</div>
-    </div>
-
-    <!-- ============ RECURRING ============ -->
-    <div class="view" id="v-recurring">
-      <div class="section-title">Subscriptions · 7 Active</div>
-      <div class="chart"><div class="minibar"><span class="ml">Subscriptions</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="27.0" height="8" fill="currentColor"/></svg><span class="mv">$567</span></div><div class="minibar"><span class="ml">Fixed</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="273.0" height="8" fill="currentColor"/></svg><span class="mv">$5,724</span></div></div>
-      <div class="li"><span class="k">Equinox <small>Renews monthly · 1st</small></span><span class="dots"></span><span class="v">$285.00 <span class="muted">$3,420/yr</span></span></div>
-      <div class="li"><span class="k">Claude Max <small>Renews 22nd</small></span><span class="dots"></span><span class="v">$100.00 <span class="muted">$1,200/yr</span></span></div>
-      <div class="li"><span class="k">QuickBooks <small>Renews in 3d ⚠</small></span><span class="dots"></span><span class="v">$90.00 <span class="muted">$1,080/yr</span></span></div>
-      <div class="li"><span class="k">Adobe Creative Cloud <small>Annual · Jun 3</small></span><span class="dots"></span><span class="v">$54.99 <span class="muted">$660/yr</span></span></div>
-      <div class="li"><span class="k">Canva Pro <small>Renews 14th</small></span><span class="dots"></span><span class="v">$14.99 <span class="muted">$180/yr</span></span></div>
-      <div class="li"><span class="k">Spotify <small>Renews 9th</small></span><span class="dots"></span><span class="v">$11.99 <span class="muted">$144/yr</span></span></div>
-      <div class="li"><span class="k">iCloud+ 2TB <small>Renews 28th</small></span><span class="dots"></span><span class="v">$9.99 <span class="muted">$120/yr</span></span></div>
-      <div class="li tot"><span class="k">SUBSCRIPTIONS</span><span class="dots"></span><span class="v">$567/mo · $6,804/yr</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Fixed Obligations</div>
-      <div class="li"><span class="k">Housing <small>Mortgage + tax + ins</small></span><span class="dots"></span><span class="v">$4,820 <span class="muted">$57,840/yr</span></span></div>
-      <div class="li"><span class="k">Auto Loan <small>Toyota FS</small></span><span class="dots"></span><span class="v">$742 <span class="muted">$8,904/yr</span></span></div>
-      <div class="li"><span class="k">Commercial Insurance <small>Quarterly</small></span><span class="dots"></span><span class="v">$162 <span class="muted">$1,948/yr</span></span></div>
-      <div class="li tot"><span class="k">ALL RECURRING</span><span class="dots"></span><span class="v">$6,291/mo · $75,496/yr</span></div>
-      <div class="foot-note">⚠ 4 CHARGES RENEW THIS WEEK · REVIEW BEFORE JUN 14</div>
-    </div>
-
-    <!-- ============ GOALS ============ -->
-    <div class="view" id="v-goals">
-      <div class="section-title">Goals · Auto-Funded Envelopes</div>
-      <div class="rings"><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="116.87 8.80" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">93</text></svg><div class="rl">Emergency<small>6-month</small></div></div><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="125.66 0.00" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">100</text></svg><div class="rl">Tax Reserve<small>2026</small></div></div><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="90.48 35.19" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">72</text></svg><div class="rl">Tokyo<small>Sep 2026</small></div></div><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="72.88 52.78" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">58</text></svg><div class="rl">Booth Fleet<small>Nov 2026</small></div></div><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="51.52 74.14" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">41</text></svg><div class="rl">529 College<small>×2</small></div></div><div class="rc"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-opacity="0.13" stroke-width="6"/><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="125.66 0.00" transform="rotate(-90 26 26)"/><text x="26" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">100</text></svg><div class="rl">Roth IRA<small>2026 max</small></div></div></div><hr class="rule dash">
-      <div class="prog"><div class="ph"><b>Emergency Fund · 6 mo</b><span>93%</span></div><div class="track">███████████████████████████████░░</div><div class="pm"><span>$55,800 / $60,000</span><span>ETA AUG 2026</span></div></div>
-      <div class="prog"><div class="ph"><b>2026 Tax Reserve</b><span>100%</span></div><div class="track">██████████████████████████████████</div><div class="pm"><span>$31,200 · Q2 ready</span><span>ON SCHEDULE</span></div></div>
-      <div class="prog"><div class="ph"><b>Tokyo · Anniversary</b><span>72%</span></div><div class="track">████████████████████████░░░░░░░░░░</div><div class="pm"><span>$8,640 / $12,000</span><span>ETA SEP 2026</span></div></div>
-      <div class="prog"><div class="ph"><b>Booth Fleet Expansion</b><span>58%</span></div><div class="track">███████████████████░░░░░░░░░░░░░░░</div><div class="pm"><span>$14,500 / $25,000</span><span>ETA NOV 2026</span></div></div>
-      <div class="prog"><div class="ph"><b>529 College · ×2</b><span>41%</span></div><div class="track">██████████████░░░░░░░░░░░░░░░░░░░░░</div><div class="pm"><span>$49,200 / $120,000</span><span>$800/MO AUTO</span></div></div>
-      <div class="prog"><div class="ph"><b>Roth IRA · 2026 Max</b><span>100%</span></div><div class="track">██████████████████████████████████</div><div class="pm"><span>$7,000 / $7,000</span><span>COMPLETE · JAN</span></div></div>
-    </div>
-
-    <!-- ============ DEBT ============ -->
-    <div class="view" id="v-debt">
-      <div class="section-title">Liabilities · $327,750 Total</div>
-      <div class="chart"><div class="minibar"><span class="ml">Mortgage</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="273.0" height="8" fill="currentColor"/></svg><span class="mv">91%</span></div><div class="minibar"><span class="ml">Auto Loan</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="21.0" height="8" fill="currentColor"/></svg><span class="mv">7%</span></div><div class="minibar"><span class="ml">Amex</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="6.0" height="8" fill="currentColor"/></svg><span class="mv">2%</span></div></div>
-      <div class="li"><span class="k">Mortgage <small>5.25% · 26 yrs</small></span><span class="dots"></span><span class="v">$298,400</span></div>
-      <div class="li"><span class="k">Auto Loan <small>3.90% · 31 mo left</small></span><span class="dots"></span><span class="v">$21,850</span></div>
-      <div class="li"><span class="k">Amex Platinum <small>Paid in full · 0%</small></span><span class="dots"></span><span class="v">$7,500</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Interest Burning · This Month</div>
-      <div class="li"><span class="k">Mortgage <small>$298,400 × 5.25% ÷ 12</small></span><span class="dots"></span><span class="v">$1,306</span></div>
-      <div class="li"><span class="k">Auto Loan <small>$21,850 × 3.90% ÷ 12</small></span><span class="dots"></span><span class="v">$71</span></div>
-      <div class="li"><span class="k">Amex <small>cleared monthly</small></span><span class="dots"></span><span class="v">$0</span></div>
-      <div class="li tot"><span class="k">MONTHLY INTEREST</span><span class="dots"></span><span class="v">$1,377</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Payoff Strategy</div>
-      <div class="li"><span class="k">Avalanche <small>highest APR first</small></span><span class="dots"></span><span class="v muted">Mortgage → Auto</span></div>
-      <div class="li"><span class="k">Snowball <small>smallest balance first</small></span><span class="dots"></span><span class="v muted">Auto → Mortgage</span></div>
-      <hr class="rule">
-      <div class="li big"><span class="k">+$500/mo on Auto</span><span class="dots"></span><span class="v">−13 mo</span></div>
-      <div class="foot-note">CLEARS AUTO LOAN BY DEC 2027 INSTEAD OF JAN 2029 · SAVES ~$520 INTEREST · THEN REDIRECT $1,242/MO</div>
-    </div>
-
-    <!-- ============ RECEIPTS ============ -->
-    <div class="view" id="v-receipts">
-      <div class="section-title">Receipt Vault · 214 Stored</div>
-      <div class="chips no-print" id="chips">
-        <button class="on" data-f="all">All</button>
-        <button data-f="ded">Deductible</button>
-        <button data-f="biz">Business</button>
-        <button data-f="per">Personal</button>
-        <button data-f="flag">Review</button>
-      </div>
-      <div id="rcpt">
-        <div class="li" data-t="biz ded"><span class="k">B&H Photo <small>JUN 08 · Equipment</small></span><span class="dots"></span><span class="v">$642.18 <span class="tag k">DED</span></span></div>
-        <div class="li" data-t="biz ded"><span class="k">Shell · Indio <small>JUN 06 · Travel · 248mi</small></span><span class="dots"></span><span class="v">$78.40 <span class="tag k">DED</span></span></div>
-        <div class="li" data-t="biz flag"><span class="k">Soho House WeHo <small>JUN 05 · Meals 50%</small></span><span class="dots"></span><span class="v">$214.66 <span class="tag">REVIEW</span></span></div>
-        <div class="li" data-t="biz ded"><span class="k">Adobe CC <small>JUN 03 · Software</small></span><span class="dots"></span><span class="v">$659.88 <span class="tag k">DED</span></span></div>
-        <div class="li" data-t="per"><span class="k">Erewhon <small>JUN 02 · Food</small></span><span class="dots"></span><span class="v">$186.42 <span class="tag">PERS</span></span></div>
-        <div class="li" data-t="biz ded"><span class="k">Vistaprint <small>MAY 30 · Marketing</small></span><span class="dots"></span><span class="v">$312.09 <span class="tag k">DED</span></span></div>
-        <div class="li" data-t="biz ded"><span class="k">State Farm <small>MAY 28 · Insurance</small></span><span class="dots"></span><span class="v">$487.00 <span class="tag k">DED</span></span></div>
-        <div class="li" data-t="per"><span class="k">Equinox <small>MAY 27 · Health</small></span><span class="dots"></span><span class="v">$285.00 <span class="tag">PERS</span></span></div>
-      </div>
-      <div class="li tot"><span class="k">DEDUCTIBLE YTD</span><span class="dots"></span><span class="v">$18,640</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Spending Intensity · Last 5 Weeks</div><div class="chart"><div class="heatwrap"><svg viewBox="0 0 96.2 67.8" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="max-width:230px"><rect x="0.0" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="14.2" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="28.4" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="42.6" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="56.8" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.66" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="71.0" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="1.0" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="85.2" y="0.0" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="0.0" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="14.2" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="28.4" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="42.6" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="56.8" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="71.0" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.66" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="85.2" y="14.2" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="0.0" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="14.2" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="28.4" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="42.6" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="56.8" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="1.0" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="71.0" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="85.2" y="28.4" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.66" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="0.0" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="14.2" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="28.4" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="42.6" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="56.8" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="71.0" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="1.0" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="85.2" y="42.6" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="0.0" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.06" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="14.2" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="28.4" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.66" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="42.6" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="56.8" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="71.0" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.42" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/><rect x="85.2" y="56.8" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-opacity="0.18" stroke-width="0.6"/></svg></div><div class="heat-leg">LESS <svg viewBox="0 0 90 12" preserveAspectRatio="none"><rect x="0" y="2" width="14" height="8" fill="currentColor" fill-opacity=".06"/><rect x="18" y="2" width="14" height="8" fill="currentColor" fill-opacity=".22"/><rect x="36" y="2" width="14" height="8" fill="currentColor" fill-opacity=".42"/><rect x="54" y="2" width="14" height="8" fill="currentColor" fill-opacity=".66"/><rect x="72" y="2" width="14" height="8" fill="currentColor" fill-opacity="1"/></svg> MORE</div></div>
-    </div>
-
-    <!-- ============ BUSINESS ============ -->
-    <div class="view" id="v-business">
-      <div class="section-title">LA Glam Booth LLC · P&L YTD</div>
-      <div class="chart"><div class="ch-head"><span class="ch-t">Monthly Revenue</span><span class="ch-v">$93,480 YTD</span></div><svg viewBox="0 0 300 92" preserveAspectRatio="none" aria-hidden="true"><line x1="8" y1="72" x2="292" y2="72" stroke="currentColor" stroke-opacity=".25" stroke-width="0.6"/><polygon points="8,72 8.0,61.1 64.8,53.1 121.6,66.2 178.4,40.5 235.2,32.5 292.0,17.8 292,72" fill="currentColor" fill-opacity="0.07"/><polyline points="8.0,61.1 64.8,53.1 121.6,66.2 178.4,40.5 235.2,32.5 292.0,17.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="292.0" cy="17.8" r="2.6" fill="currentColor"/><circle cx="8.0" cy="61.1" r="1.8" fill="currentColor" fill-opacity=".5"/><text x="8.0" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">JAN</text><text x="64.8" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">FEB</text><text x="121.6" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">MAR</text><text x="178.4" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">APR</text><text x="235.2" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">MAY</text><text x="292.0" y="86" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55" letter-spacing="0.5">JUN</text></svg></div>
-      <div class="li"><span class="k">Gross Revenue <small>38 events</small></span><span class="dots"></span><span class="v">$93,480</span></div>
-      <div class="li"><span class="k">Cost of Goods <small>Prints, props, staff</small></span><span class="dots"></span><span class="v neg">$14,120</span></div>
-      <div class="li"><span class="k">Operating Expenses</span><span class="dots"></span><span class="v neg">$18,940</span></div>
-      <div class="li"><span class="k">Depreciation <small>§179 equipment</small></span><span class="dots"></span><span class="v neg">$6,200</span></div>
-      <div class="li tot"><span class="k">NET PROFIT</span><span class="dots"></span><span class="v">$54,220</span></div>
-      <div class="foot-note">58.0% MARGIN · PACING $117K — AHEAD OF $100K TARGET</div>
-      <hr class="rule dash">
-      <div class="split">
-        <div><div class="l">Mileage</div><div class="n">3,184 mi</div></div>
-        <div><div class="l">Receivables</div><div class="n">$11,400</div></div>
-        <div><div class="l">Pipeline</div><div class="n">$28,500</div></div>
-      </div>
-      <div class="foot-note">3 INVOICES OPEN · OLDEST 12 DAYS · 2 CONSULTING PROPOSALS OUT</div>
-    </div>
-
-    <!-- ============ TAXES ============ -->
-    <div class="view" id="v-taxes">
-      <div class="section-title">2026 Tax Position</div>
-      <div class="hero-total">
-        <div class="lbl">Projected Liability</div>
-        <div class="amt">$42,300</div>
-        <div class="sub">EFFECTIVE RATE 23.1% ON $183K PROJECTED</div>
-      </div>
-      <div class="li"><span class="k">Federal</span><span class="dots"></span><span class="v">$24,600</span></div>
-      <div class="li"><span class="k">California</span><span class="dots"></span><span class="v">$9,400</span></div>
-      <div class="li"><span class="k">Self-Employment</span><span class="dots"></span><span class="v">$8,300</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Quarterly · 1040-ES</div>
-      <div class="chart"><div class="ch-head"><span class="ch-t">Estimated Payments</span><span class="ch-v">$42,300 total</span></div><svg viewBox="0 0 300 104" preserveAspectRatio="none" aria-hidden="true"><line x1="10" y1="80" x2="290" y2="80" stroke="currentColor" stroke-opacity=".3" stroke-width="0.6"/><rect x="23.0" y="19.1" width="21.0" height="60.9" fill="currentColor" fill-opacity=".88"/><rect x="46.0" y="19.1" width="21.0" height="60.9" fill="currentColor" fill-opacity=".30"/><text x="45.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">Q1</text><rect x="93.0" y="12.0" width="21.0" height="68.0" fill="currentColor" fill-opacity=".88"/><rect x="116.0" y="80.0" width="21.0" height="0.0" fill="currentColor" fill-opacity=".30"/><text x="115.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">Q2</text><rect x="163.0" y="21.4" width="21.0" height="58.6" fill="currentColor" fill-opacity=".88"/><rect x="186.0" y="80.0" width="21.0" height="0.0" fill="currentColor" fill-opacity=".30"/><text x="185.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">Q3</text><rect x="233.0" y="24.5" width="21.0" height="55.5" fill="currentColor" fill-opacity=".88"/><rect x="256.0" y="80.0" width="21.0" height="0.0" fill="currentColor" fill-opacity=".30"/><text x="255.0" y="92" font-size="7" text-anchor="middle" fill="currentColor" fill-opacity=".55">Q4</text></svg><div class="ch-legend"><span><i></i>Scheduled</span><span><i class="lite"></i>Paid</span></div></div>
-      <div class="li"><span class="k">Q1 <small>Paid Apr 14</small></span><span class="dots"></span><span class="v">$10,600 <span class="tag k">PAID</span></span></div>
-      <div class="li"><span class="k">Q2 <small>Due Jun 15 · funded</small></span><span class="dots"></span><span class="v">$11,840 <span class="tag">DUE 5D</span></span></div>
-      <div class="li"><span class="k">Q3 <small>Due Sep 15</small></span><span class="dots"></span><span class="v">$10,200</span></div>
-      <div class="li"><span class="k">Q4 <small>Due Jan 15 2027</small></span><span class="dots"></span><span class="v">$9,660</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Deductions Identified</div>
-      <div class="li"><span class="k">QBI Deduction <small>est.</small></span><span class="dots"></span><span class="v">$10,840</span></div>
-      <div class="li"><span class="k">Solo 401(k) Employer</span><span class="dots"></span><span class="v">$9,000</span></div>
-      <div class="li"><span class="k">§179 + Depreciation</span><span class="dots"></span><span class="v">$6,200</span></div>
-      <div class="li"><span class="k">Health Insurance (SE)</span><span class="dots"></span><span class="v">$4,150</span></div>
-      <div class="li"><span class="k">Home Office (12%)</span><span class="dots"></span><span class="v">$3,480</span></div>
-      <div class="li"><span class="k">Vehicle / Mileage</span><span class="dots"></span><span class="v">$2,228</span></div>
-      <div class="li tot"><span class="k">TOTAL</span><span class="dots"></span><span class="v">$35,898</span></div>
-    </div>
-
-    <!-- ============ DOCS ============ -->
-    <div class="view" id="v-docs">
-      <div class="section-title">Document Vault · 11 Files</div>
-      <div class="chart"><div class="minibar"><span class="ml">Encrypted</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="144.0" height="8" fill="currentColor"/></svg><span class="mv">48 MB</span></div></div>
-      <div class="li"><span class="k">2025 Tax Return · Form 1040 <small>Filed Apr 9 2026</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">2024 Tax Return · Form 1040 <small>Archived</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Q1 2026 · 1040-ES Confirmation <small>Paid Apr 14</small></span><span class="dots"></span><span class="v"><span class="tag k">RECEIPT</span></span></div>
-      <div class="li"><span class="k">LLC Operating Agreement <small>LA Glam Booth</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Articles of Organization <small>CA SOS</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">EIN Confirmation · CP-575 <small>IRS</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Commercial Liability Policy <small>State Farm · renews Aug</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Homeowner's Policy <small>Renews Mar</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Auto Insurance Policy <small>Renews Oct</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Mortgage Note &amp; Closing Docs <small>Wells Fargo</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li"><span class="k">Estate · Will &amp; Trust <small>Updated 2025</small></span><span class="dots"></span><span class="v"><span class="tag">PDF</span></span></div>
-      <div class="li tot"><span class="k">ENCRYPTED STORAGE</span><span class="dots"></span><span class="v">11 files · 48 MB</span></div>
-      <div class="foot-note">⚠ COMMERCIAL LIABILITY RENEWS AUG — REVIEW COVERAGE</div>
-    </div>
-
-    <!-- ============ FAMILY ============ -->
-    <div class="view" id="v-family">
-      <div class="section-title">Household Accounts</div>
-      <div class="chart"><div class="ch-head"><span class="ch-t">Custodial / Retirement Share</span><span class="ch-v">$118,940</span></div><div class="minibar"><span class="ml">M · Spouse</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="144.0" height="8" fill="currentColor"/></svg><span class="mv">$61.2K</span></div><div class="minibar"><span class="ml">A · age 9</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="84.0" height="8" fill="currentColor"/></svg><span class="mv">$34.6K</span></div><div class="minibar"><span class="ml">J · age 6</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="60.0" height="8" fill="currentColor"/></svg><span class="mv">$24.9K</span></div></div><hr class="rule dash">
-      <div class="mem">
-        <div class="mh"><b>M. — SPOUSE</b><span class="tag k">FULL ACCESS</span></div>
-        <div class="li"><span class="k">Roth IRA</span><span class="dots"></span><span class="v">$61,200</span></div>
-        <div class="li"><span class="k">2026 Roth Progress</span><span class="dots"></span><span class="v">$4,100 / $7,000</span></div>
-      </div>
-      <div class="mem">
-        <div class="mh"><b>A. — AGE 9</b><span class="tag">VIEW ONLY</span></div>
-        <div class="li"><span class="k">529 College Plan</span><span class="dots"></span><span class="v">$28,400</span></div>
-        <div class="li"><span class="k">UTMA Custodial</span><span class="dots"></span><span class="v">$6,180</span></div>
-        <div class="li"><span class="k">Allowance <small>$15/wk</small></span><span class="dots"></span><span class="v">$142</span></div>
-        <div class="li"><span class="k">Goal · Bike</span><span class="dots"></span><span class="v muted">78%</span></div>
-      </div>
-      <div class="mem">
-        <div class="mh"><b>J. — AGE 6</b><span class="tag">VIEW ONLY</span></div>
-        <div class="li"><span class="k">529 College Plan</span><span class="dots"></span><span class="v">$20,800</span></div>
-        <div class="li"><span class="k">UTMA Custodial</span><span class="dots"></span><span class="v">$4,090</span></div>
-        <div class="li"><span class="k">Allowance <small>$10/wk</small></span><span class="dots"></span><span class="v">$64</span></div>
-        <div class="li"><span class="k">Goal · Switch</span><span class="dots"></span><span class="v muted">31%</span></div>
-      </div>
-    </div>
-
-    <!-- ============ TRAVEL ============ -->
-    <div class="view" id="v-travel">
-      <div class="section-title">Travel Mode · Tokyo · Sep 2026</div>
-      <div class="hero-total">
-        <div class="lbl">Trip Budget Saved</div>
-        <div class="amt">$8,640</div>
-        <div class="sub">OF $12,000 · 72% FUNDED · ETA SEP 2026</div>
-      </div>
-      <div class="prog"><div class="ph"><b>Tokyo Fund</b><span>72%</span></div><div class="track">████████████████████████░░░░░░░░░░</div><div class="pm"><span>$8,640 / $12,000</span><span>$560/MO AUTO</span></div></div>
-      <hr class="rule dash">
-      <div class="section-title">In Yen · ¥157.20 / $1</div>
-      <div class="li"><span class="k">Trip Budget</span><span class="dots"></span><span class="v">¥1,886,400</span></div>
-      <div class="li"><span class="k">Saved So Far</span><span class="dots"></span><span class="v">¥1,358,208</span></div>
-      <div class="li"><span class="k">Travel Wallet <small>prefunded JPY</small></span><span class="dots"></span><span class="v">¥220,000</span></div>
-      <hr class="rule dash">
-      <div class="section-title">Budget Breakdown</div>
-      <div class="chart"><div class="minibar"><span class="ml">Funded</span><svg viewBox="0 0 300 10" preserveAspectRatio="none" aria-hidden="true" style="height:9px"><rect x="0" y="1" width="300" height="8" fill="currentColor" fill-opacity=".12"/><rect x="0" y="1" width="216.0" height="8" fill="currentColor"/></svg><span class="mv">72%</span></div></div>
-      <div class="li"><span class="k">Flights <small>2 · business</small></span><span class="dots"></span><span class="v">$4,800</span></div>
-      <div class="li"><span class="k">Lodging <small>7 nights</small></span><span class="dots"></span><span class="v">$3,150</span></div>
-      <div class="li"><span class="k">Food &amp; Dining</span><span class="dots"></span><span class="v">$2,100</span></div>
-      <div class="li"><span class="k">Transit &amp; Activities</span><span class="dots"></span><span class="v">$1,400</span></div>
-      <div class="li"><span class="k">Buffer</span><span class="dots"></span><span class="v">$550</span></div>
-      <div class="li tot"><span class="k">TOTAL</span><span class="dots"></span><span class="v">$12,000</span></div>
-      <div class="foot-note">FX RATE ILLUSTRATIVE · NO FOREIGN TRANSACTION FEE ON AMEX PLATINUM</div>
-    </div>
-
-    <!-- ============ STATEMENT ============ -->
-    <div class="view" id="v-statement">
-      <div class="section-title">CPA Statement · Jan 1 — Jun 10 2026</div>
-      <div class="li"><span class="k">I. NET WORTH</span><span class="dots"></span><span class="v">$1,284,650</span></div>
-      <div class="li"><span class="k">II. Total Income YTD</span><span class="dots"></span><span class="v">$95,780</span></div>
-      <div class="li"><span class="k">III. Business Net (Sch. C)</span><span class="dots"></span><span class="v">$54,220</span></div>
-      <div class="li"><span class="k">IV. Projected Tax</span><span class="dots"></span><span class="v">$42,300</span></div>
-      <div class="li"><span class="k">V. Deductions Identified</span><span class="dots"></span><span class="v">$35,898</span></div>
-      <div class="li"><span class="k">VI. Family / Custodial</span><span class="dots"></span><span class="v">$59,470</span></div>
-      <hr class="rule dbl">
-      <div class="foot-note" style="letter-spacing:.1em">PREPARED FOR TAX PROFESSIONAL REVIEW · CONFIDENTIAL</div>
-      <div class="actions no-print">
-        <button onclick="window.print()">↓ Download PDF</button>
-        <button class="ghost" onclick="window.location.href='mailto:?subject=Financial%20Statement%20H%20June%202026&body=Attached%20is%20my%20mid-year%20financial%20statement%20for%20review.'">→ Send to CPA</button>
-      </div>
-      <div class="barcode">
-        <div class="bc-title">LEDGER</div>
-        <svg class="bc-bars" viewBox="0 0 300 54" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect x="0.0" y="0.0" width="1.6" height="54.0"/><rect x="3.0" y="0.0" width="1.6" height="54.0"/><rect x="7.6" y="0.0" width="2.2" height="46.0"/><rect x="12.2" y="0.0" width="2.2" height="46.0"/><rect x="16.2" y="0.0" width="2.2" height="46.0"/><rect x="20.2" y="0.0" width="1.4" height="46.0"/><rect x="23.4" y="0.0" width="1.0" height="46.0"/><rect x="27.4" y="0.0" width="1.0" height="46.0"/><rect x="29.6" y="0.0" width="1.4" height="46.0"/><rect x="32.2" y="0.0" width="1.0" height="46.0"/><rect x="34.4" y="0.0" width="1.0" height="46.0"/><rect x="37.2" y="0.0" width="3.0" height="46.0"/><rect x="43.2" y="0.0" width="1.0" height="46.0"/><rect x="46.0" y="0.0" width="1.4" height="46.0"/><rect x="49.2" y="0.0" width="1.4" height="46.0"/><rect x="51.8" y="0.0" width="2.2" height="46.0"/><rect x="55.8" y="0.0" width="1.4" height="46.0"/><rect x="59.0" y="0.0" width="1.4" height="46.0"/><rect x="61.6" y="0.0" width="3.8" height="46.0"/><rect x="67.8" y="0.0" width="1.0" height="46.0"/><rect x="70.6" y="0.0" width="3.8" height="46.0"/><rect x="75.6" y="0.0" width="2.2" height="46.0"/><rect x="79.6" y="0.0" width="1.4" height="46.0"/><rect x="82.2" y="0.0" width="2.2" height="46.0"/><rect x="87.4" y="0.0" width="1.4" height="46.0"/><rect x="90.0" y="0.0" width="1.4" height="46.0"/><rect x="92.6" y="0.0" width="3.0" height="46.0"/><rect x="96.8" y="0.0" width="1.4" height="46.0"/><rect x="99.4" y="0.0" width="2.2" height="46.0"/><rect x="104.0" y="0.0" width="1.0" height="46.0"/><rect x="106.2" y="0.0" width="2.2" height="46.0"/><rect x="110.2" y="0.0" width="2.2" height="46.0"/><rect x="115.4" y="0.0" width="3.0" height="46.0"/><rect x="120.2" y="0.0" width="2.2" height="46.0"/><rect x="123.6" y="0.0" width="1.0" height="46.0"/><rect x="127.0" y="0.0" width="3.0" height="46.0"/><rect x="131.8" y="0.0" width="2.2" height="46.0"/><rect x="135.2" y="0.0" width="2.2" height="46.0"/><rect x="139.8" y="0.0" width="1.4" height="46.0"/><rect x="143.6" y="0.0" width="1.4" height="46.0"/><rect x="146.2" y="0.0" width="1.4" height="46.0"/><rect x="148.8" y="0.0" width="1.4" height="46.0"/><rect x="151.4" y="0.0" width="2.2" height="46.0"/><rect x="154.8" y="0.0" width="3.0" height="46.0"/><rect x="160.2" y="0.0" width="3.8" height="46.0"/><rect x="166.4" y="0.0" width="3.8" height="46.0"/><rect x="171.4" y="0.0" width="3.8" height="46.0"/><rect x="176.4" y="0.0" width="1.0" height="46.0"/><rect x="178.6" y="0.0" width="1.4" height="46.0"/><rect x="181.2" y="0.0" width="3.0" height="46.0"/><rect x="186.6" y="0.0" width="1.4" height="46.0"/><rect x="189.2" y="0.0" width="2.2" height="46.0"/><rect x="192.6" y="0.0" width="1.0" height="46.0"/><rect x="195.4" y="0.0" width="2.2" height="46.0"/><rect x="198.8" y="0.0" width="2.2" height="46.0"/><rect x="203.4" y="0.0" width="2.2" height="46.0"/><rect x="206.8" y="0.0" width="1.0" height="46.0"/><rect x="209.6" y="0.0" width="1.4" height="46.0"/><rect x="212.2" y="0.0" width="2.2" height="46.0"/><rect x="215.6" y="0.0" width="2.2" height="46.0"/><rect x="220.2" y="0.0" width="2.2" height="46.0"/><rect x="224.8" y="0.0" width="2.2" height="46.0"/><rect x="228.8" y="0.0" width="3.0" height="46.0"/><rect x="234.8" y="0.0" width="1.4" height="46.0"/><rect x="238.0" y="0.0" width="1.4" height="46.0"/><rect x="242.4" y="0.0" width="1.0" height="46.0"/><rect x="245.8" y="0.0" width="1.4" height="46.0"/><rect x="250.2" y="0.0" width="1.4" height="46.0"/><rect x="254.0" y="0.0" width="1.4" height="46.0"/><rect x="257.8" y="0.0" width="3.0" height="46.0"/><rect x="262.0" y="0.0" width="2.2" height="46.0"/><rect x="266.6" y="0.0" width="1.4" height="46.0"/><rect x="269.2" y="0.0" width="2.2" height="46.0"/><rect x="272.6" y="0.0" width="1.4" height="46.0"/><rect x="277.0" y="0.0" width="1.0" height="46.0"/><rect x="279.2" y="0.0" width="3.8" height="46.0"/><rect x="284.2" y="0.0" width="1.4" height="46.0"/><rect x="293.8" y="0.0" width="1.6" height="54.0"/><rect x="296.8" y="0.0" width="1.6" height="54.0"/></svg>
-        <div class="no">H · 2026 · 0610 · CONFIDENTIAL</div>
-      </div>
-      <div class="thanks">— THANK YOU FOR BANKING WITH YOURSELF —</div>
-    </div>
-
-    <!-- ============ SETTINGS ============ -->
-    <div class="view" id="v-settings">
-      <div class="section-title">Backup · Encrypted Export</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Download your vault as a <b>.ledger</b> file. It is already ciphertext — safe to drop in iCloud, Dropbox, or a USB key. Only your passphrase can open it.</p>
-      <button class="add no-print" id="set-export">▸ Export Encrypted Vault</button>
-      <div class="foot-note" id="set-export-note" hidden></div>
-
-      <hr class="rule dash">
-      <div class="section-title">Restore · Import Vault</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Load a <b>.ledger</b> file from another device. This <b>replaces</b> the vault on this device; you'll re-enter that vault's passphrase to unlock it.</p>
-      <div class="imp-drop" id="set-import-drop" tabindex="0" role="button" aria-label="Import .ledger backup">
-        <div class="ic">↑</div>
-        <div class="it">Choose a .ledger file</div>
-        <div class="is">restores an encrypted backup · nothing is uploaded</div>
-        <input type="file" id="set-import-file" accept=".ledger,application/json,text/plain" hidden>
-      </div>
-      <div class="foot-note" id="set-import-note" hidden></div>
-
-      <hr class="rule dash">
-      <div class="section-title">Security · Hardware Key</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Add a <b>YubiKey or passkey</b> as a second factor. After your passphrase unlocks the vault, LEDGER also asks for the key before opening. This is an extra gate — your data stays encrypted with your passphrase, and your recovery key still works.</p>
-      <div class="li"><span class="k">Status</span><span class="dots"></span><span class="v" id="sec-status">Off</span></div>
-      <button class="add no-print" id="sec-toggle" data-on="">▸ Enable Security Key</button>
-      <div class="foot-note" id="sec-note" hidden></div>
-
-      <hr class="rule dash">
-      <div class="section-title">Self-Test · Verify Encryption</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Run live checks against your unlocked vault: a wrong passphrase is rejected, what's on disk reloads, and IndexedDB holds only ciphertext. Results also print to the browser console.</p>
-      <button class="add no-print" id="set-selftest">▸ Run Self-Test</button>
-      <div id="set-selftest-out" class="xp-list" style="margin-top:10px"></div>
-
-      <hr class="rule dash">
-      <div class="section-title">Data · Reset</div>
-      <p style="font-size:12.5px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">A new vault starts with sample data so the tabs aren't empty. Clear it to begin tracking your own. <b>Export a backup first</b> if you want it — there's no undo.</p>
-      <button class="add no-print" id="set-clear">▸ Clear All Transactions</button>
-      <button class="add no-print" id="set-sample" style="margin-top:8px;background:var(--bg);color:var(--ink-2)">▸ Load Sample Data</button>
-      <button class="add no-print" id="set-erase" style="margin-top:8px;background:var(--bg);color:var(--ink-2)">▸ Erase Vault &amp; Start Over</button>
-      <div class="foot-note" id="set-data-note" hidden></div>
-
-      <hr class="rule dash">
-      <div class="foot-note">ALL EXPORT / IMPORT IS LOCAL · CIPHERTEXT ONLY · NO PASSWORD RESET</div>
-    </div>
+    <div class="view on" id="v-overview"></div>
+    <div class="view" id="v-register"></div>
+    <div class="view" id="v-explore"></div>
+    <div class="view" id="v-import"></div>
+    <div class="view" id="v-review"></div>
+    <div class="view" id="v-cashflow"></div>
+    <div class="view" id="v-invest"></div>
+    <div class="view" id="v-recurring"></div>
+    <div class="view" id="v-goals"></div>
+    <div class="view" id="v-receipts"></div>
+    <div class="view" id="v-debt"></div>
+    <div class="view" id="v-business"></div>
+    <div class="view" id="v-taxes"></div>
+    <div class="view" id="v-docs"></div>
+    <div class="view" id="v-family"></div>
+    <div class="view" id="v-travel"></div>
+    <div class="view" id="v-statement"></div>
+    <div class="view" id="v-settings"></div>
 
     <hr class="rule dash">
-    <div class="foot-note">
-      LEDGER · BANK-LEVEL ENCRYPTION · READ-ONLY CONNECTIONS<br>
-      DEMONSTRATION DATA · NOT FINANCIAL ADVICE
-    </div>
+    <div class="foot-note">LEDGER · END-TO-END ENCRYPTED · YOUR DATA NEVER LEAVES THIS DEVICE</div>
   </div>
-
   <span class="perf"><svg preserveAspectRatio="none" viewBox="0 0 560 12"><path d="M0,0 L0,6 Q7,12 14,6 T28,6 T42,6 T56,6 T70,6 T84,6 T98,6 T112,6 T126,6 T140,6 T154,6 T168,6 T182,6 T196,6 T210,6 T224,6 T238,6 T252,6 T266,6 T280,6 T294,6 T308,6 T322,6 T336,6 T350,6 T364,6 T378,6 T392,6 T406,6 T420,6 T434,6 T448,6 T462,6 T476,6 T490,6 T504,6 T518,6 T532,6 T546,6 T560,6 L560,0 Z" fill="var(--paper)" stroke="var(--line-soft)" stroke-width="1"/></svg></span>
 </div>
 
+<div class="modal no-print" id="modal"></div>
+
 <script>
-/* ============================================================
-   LEDGER · embedded encryption + local storage + unlock
-   Self-contained: no external code fetched at runtime (PWA-safe).
-   ============================================================ */
 /* =====================================================================
-   LEDGER · ledger-crypto.js
-   Client-side end-to-end encryption layer.
-
-   The principle: your data is encrypted IN THE BROWSER, before it ever
-   leaves the device. The hub only ever stores opaque ciphertext. Without
-   your passphrase (and, optionally, your hardware key), the stored data
-   is mathematically useless — even to someone holding the disk.
-
-   Primitives (all from the browser's audited Web Crypto API):
-     · AES-256-GCM        confidentiality + integrity (authenticated)
-     · PBKDF2-SHA-256     passphrase -> key, 600k iterations (OWASP 2023)
-     · WebAuthn / FIDO2   hardware-key auth + optional key-binding
-
-   No third-party crypto libraries. No keys ever sent anywhere.
+   LEDGER · client-side end-to-end encryption (Web Crypto only)
    ===================================================================== */
-
 const ENC = new TextEncoder();
 const DEC = new TextDecoder();
-const KDF_ITERATIONS = 600000;          // OWASP min for PBKDF2-HMAC-SHA256
+const KDF_ITERATIONS = 600000;
 const ENVELOPE_VERSION = 1;
-
-/* ---- base64 helpers (binary-safe) ---- */
 const b64 = {
   enc: (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))),
   dec: (str) => Uint8Array.from(atob(str), (c) => c.charCodeAt(0)),
 };
-
-/* ---------------------------------------------------------------------
-   deriveKey(passphrase, saltBytes)
-   Turns a human passphrase into a 256-bit AES key. The salt makes every
-   vault unique, so two people with the same passphrase get different keys
-   and precomputed ("rainbow") attacks are useless.
-   --------------------------------------------------------------------- */
 async function deriveKey(passphrase, salt) {
-  const baseKey = await crypto.subtle.importKey(
-    'raw', ENC.encode(passphrase), 'PBKDF2', false, ['deriveKey']
-  );
+  const baseKey = await crypto.subtle.importKey('raw', ENC.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: KDF_ITERATIONS, hash: 'SHA-256' },
-    baseKey,
-    { name: 'AES-GCM', length: 256 },
-    false,                 // non-extractable: the key can never be read out
-    ['encrypt', 'decrypt']
-  );
+    baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
-
-/* ---------------------------------------------------------------------
-   newVaultSalt() — call once when a vault is created; store it alongside
-   the ciphertext (it is NOT secret). Re-used on every unlock.
-   --------------------------------------------------------------------- */
-function newVaultSalt() {
-  return crypto.getRandomValues(new Uint8Array(16));
-}
-
-/* ---------------------------------------------------------------------
-   encrypt(plainObject, key) -> envelope object (safe to store/transmit)
-   A fresh random IV is generated per write (never reuse an IV with GCM).
-   --------------------------------------------------------------------- */
+function newVaultSalt(){ return crypto.getRandomValues(new Uint8Array(16)); }
 async function encrypt(plainObject, key) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const data = ENC.encode(JSON.stringify(plainObject));
   const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
-  return {
-    v: ENVELOPE_VERSION,
-    alg: 'AES-256-GCM',
-    iv: b64.enc(iv),
-    ct: b64.enc(ct),
-    ts: new Date().toISOString(),
-  };
+  return { v: ENVELOPE_VERSION, alg: 'AES-256-GCM', iv: b64.enc(iv), ct: b64.enc(ct), ts: new Date().toISOString() };
 }
-
-/* ---------------------------------------------------------------------
-   decrypt(envelope, key) -> original object
-   Throws if the ciphertext was tampered with (GCM auth tag fails) or the
-   key is wrong. A thrown error here means "wrong passphrase or corrupted".
-   --------------------------------------------------------------------- */
 async function decrypt(envelope, key) {
-  const iv = b64.dec(envelope.iv);
-  const ct = b64.dec(envelope.ct);
+  const iv = b64.dec(envelope.iv), ct = b64.dec(envelope.ct);
   const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
   return JSON.parse(DEC.decode(plain));
 }
-
-/* =====================================================================
-   HARDWARE-KEY BINDING (YubiKey / any FIDO2 authenticator)
-
-   Two distinct jobs people conflate:
-
-   (A) AUTHENTICATION — "prove it's you" before the app will run.
-       Standard WebAuthn. Phishing-proof second factor.
-
-   (B) KEY-BINDING — make the decryption key require the physical key,
-       not just the passphrase. Uses the FIDO2 `hmac-secret` extension:
-       the authenticator returns a deterministic secret derived from a
-       per-credential key it never exposes. We mix that secret INTO the
-       passphrase-derived key. Result: data cannot be decrypted without
-       BOTH the passphrase (something you know) AND the physical token
-       (something you have). Lose either and the math doesn't close.
-
-   Note: hmac-secret support varies by browser/OS. Treat (B) as the
-   hardened tier; (A) works everywhere WebAuthn does.
-   ===================================================================== */
-
 async function registerSecurityKey(userId, userName) {
   const challenge = crypto.getRandomValues(new Uint8Array(32));
-  return navigator.credentials.create({
-    publicKey: {
-      challenge,
-      rp: { name: 'LEDGER' },
-      user: { id: ENC.encode(userId), name: userName, displayName: userName },
-      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-      authenticatorSelection: { authenticatorAttachment: 'cross-platform', userVerification: 'required', residentKey: 'required' },
-      extensions: { hmacCreateSecret: true },   // request (B) key-binding
-      timeout: 60000,
-    },
-  });
+  return navigator.credentials.create({ publicKey: {
+    challenge, rp: { name: 'LEDGER' },
+    user: { id: ENC.encode(userId), name: userName, displayName: userName },
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: 'cross-platform', userVerification: 'required', residentKey: 'required' },
+    extensions: { hmacCreateSecret: true }, timeout: 60000 } });
 }
-
 async function assertSecurityKey(credentialId, hmacSalt) {
   const challenge = crypto.getRandomValues(new Uint8Array(32));
-  return navigator.credentials.get({
-    publicKey: {
-      challenge,
-      allowCredentials: credentialId ? [{ type: 'public-key', id: credentialId }] : [],
-      userVerification: 'required',
-      extensions: hmacSalt ? { hmacGetSecret: { salt1: hmacSalt } } : undefined,
-      timeout: 60000,
-    },
-  });
+  return navigator.credentials.get({ publicKey: {
+    challenge, allowCredentials: credentialId ? [{ type: 'public-key', id: credentialId }] : [],
+    userVerification: 'required',
+    extensions: hmacSalt ? { hmacGetSecret: { salt1: hmacSalt } } : undefined, timeout: 60000 } });
+}
+function generateRecoveryKey() {
+  const bytes = crypto.getRandomValues(new Uint8Array(20));
+  return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('').toUpperCase().match(/.{1,4}/g).join('-');
+}
+const LedgerCrypto = { deriveKey, newVaultSalt, encrypt, decrypt, registerSecurityKey, assertSecurityKey, generateRecoveryKey, b64 };
+
+/* ---------- IndexedDB: stores ONLY ciphertext ---------- */
+const DB_NAME='ledger-vault', STORE='vault';
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB_NAME,1);
+  r.onupgradeneeded=()=>{ r.result.createObjectStore(STORE); };
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbGet(key){ const db=await idb(); return new Promise((res,rej)=>{
+  const t=db.transaction(STORE,'readonly').objectStore(STORE).get(key);
+  t.onsuccess=()=>res(t.result??null); t.onerror=()=>rej(t.error); }); }
+async function idbSet(key,val){ const db=await idb(); return new Promise((res,rej)=>{
+  const t=db.transaction(STORE,'readwrite').objectStore(STORE).put(val,key);
+  t.onsuccess=()=>res(true); t.onerror=()=>rej(t.error); }); }
+
+/* =====================================================================
+   App state + model
+   ===================================================================== */
+let VAULT_KEY=null, VAULT=null, activeTab='overview';
+const MODEL_VERSION=2;
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const uid=()=>crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2);
+const num=x=>{ const n=parseFloat(x); return isNaN(n)?0:n; };
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>(n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0=n=>(n<0?'−$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US');
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>{ if(!d) return ''; const x=new Date(d); return isNaN(x)?d:x.toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase(); };
+
+const ACCT_TYPES=['Checking','Savings','Cash','Brokerage','Retirement','Crypto','Property','Vehicle','Credit Card','Loan','Mortgage','Line of Credit','Other'];
+const LIAB_TYPES=['Credit Card','Loan','Mortgage','Line of Credit'];
+const LIQUID_TYPES=['Checking','Savings','Cash'];
+const ASSET_CLASSES=['US Equity','International','Bonds','Cash','Crypto','Other'];
+const CADENCES=['Monthly','Quarterly','Annual','Weekly'];
+const CADENCE_TO_MONTH={Monthly:1,Quarterly:1/3,Annual:1/12,Weekly:4.33};
+const CATS=['Income','Food','Equipment','Travel','Software','Marketing','Insurance','Health','Auto','Meals 50%','Housing','Utilities','Owner Draw','Consulting','Other'];
+
+function blankVault(){
+  return { version:MODEL_VERSION, createdAt:new Date().toISOString(),
+    transactions:[], accounts:[], holdings:[], recurring:[], goals:[], mileage:[], docs:[], snapshots:[],
+    settings:{ merchantRules:{}, profile:{name:''}, tax:{effectiveRate:25, stateRate:0}, reviewCleared:0 } };
+}
+function migrateVault(v){
+  v=v||{}; v.version=MODEL_VERSION;
+  ['transactions','accounts','holdings','recurring','goals','mileage','docs','snapshots'].forEach(k=>{ if(!Array.isArray(v[k])) v[k]=[]; });
+  v.settings=v.settings||{};
+  v.settings.merchantRules=v.settings.merchantRules||{};
+  v.settings.profile=v.settings.profile||{name:''};
+  v.settings.tax=v.settings.tax||{effectiveRate:25, stateRate:0};
+  if(typeof v.settings.reviewCleared!=='number') v.settings.reviewCleared=0;
+  return v;
+}
+const coll=k=>(VAULT&&Array.isArray(VAULT[k]))?VAULT[k]:[];
+const settings=()=>{ if(VAULT&&!VAULT.settings)VAULT.settings={}; return VAULT?VAULT.settings:{}; };
+
+async function saveVault(){ if(!VAULT_KEY||!VAULT) return; await idbSet('data', await LedgerCrypto.encrypt(VAULT,VAULT_KEY)); }
+function captureSnapshot(){
+  if(!VAULT) return;
+  const d=todayStr(), nw=netWorth();
+  const s=VAULT.snapshots, last=s[s.length-1];
+  if(last&&last.date===d) last.netWorth=nw; else s.push({date:d,netWorth:nw});
+  if(s.length>180) VAULT.snapshots=s.slice(-180);
+}
+async function persist(){ captureSnapshot(); await saveVault(); renderActive(); }
+
+/* =====================================================================
+   Derived numbers (never stored)
+   ===================================================================== */
+const isLiab=a=>a.kind==='liability'||LIAB_TYPES.includes(a.type);
+const holdingsValue=()=>coll('holdings').reduce((s,h)=>s+num(h.value),0);
+const holdingsCost=()=>coll('holdings').reduce((s,h)=>s+num(h.costBasis),0);
+const assetsTotal=()=>coll('accounts').filter(a=>!isLiab(a)).reduce((s,a)=>s+num(a.balance),0)+holdingsValue();
+const liabTotal=()=>coll('accounts').filter(isLiab).reduce((s,a)=>s+num(a.balance),0);
+const netWorth=()=>assetsTotal()-liabTotal();
+const liquidTotal=()=>coll('accounts').filter(a=>LIQUID_TYPES.includes(a.type)).reduce((s,a)=>s+num(a.balance),0);
+const txSorted=()=>coll('transactions').slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+const uncategorized=()=>coll('transactions').filter(t=>!t.category);
+const ym=d=>(d||'').slice(0,7);
+function flowFor(filterFn){ let inc=0,exp=0; coll('transactions').forEach(t=>{ if(filterFn&&!filterFn(t))return; if(t.direction==='in')inc+=num(t.amount); else exp+=num(t.amount); }); return {inc,exp,net:inc-exp}; }
+function catTotals(filterFn){ const m={}; coll('transactions').forEach(t=>{ if(filterFn&&!filterFn(t))return; const k=t.category||'Uncategorized'; m[k]=(m[k]||0)+num(t.amount); }); return Object.entries(m).sort((a,b)=>b[1]-a[1]); }
+const thisMonth=()=>todayStr().slice(0,7);
+const deductibleYTD=()=>coll('transactions').filter(t=>t.deductible&&t.direction!=='in').reduce((s,t)=>s+num(t.amount),0);
+const businessFlow=()=>flowFor(t=>t.type==='biz');
+function monthlyInterest(){ return coll('accounts').filter(isLiab).reduce((s,a)=>s+num(a.balance)*num(a.apr)/100/12,0); }
+
+/* =====================================================================
+   Generic CRUD editor
+   ===================================================================== */
+const FIELDS={
+  accounts:[
+    {key:'name',label:'Name',type:'text'},{key:'institution',label:'Institution',type:'text'},
+    {key:'type',label:'Type',type:'select',options:ACCT_TYPES},{key:'balance',label:'Balance',type:'number'},
+    {key:'apr',label:'APR %',type:'number'},{key:'family',label:'Family',type:'check'}],
+  holdings:[
+    {key:'symbol',label:'Symbol',type:'text'},{key:'shares',label:'Shares',type:'number'},
+    {key:'costBasis',label:'Cost Basis',type:'number'},{key:'value',label:'Market Value',type:'number'},
+    {key:'assetClass',label:'Class',type:'select',options:ASSET_CLASSES}],
+  recurring:[
+    {key:'name',label:'Name',type:'text'},{key:'amount',label:'Amount',type:'number'},
+    {key:'cadence',label:'Cadence',type:'select',options:CADENCES},{key:'nextDate',label:'Next Date',type:'date'},
+    {key:'kind',label:'Kind',type:'select',options:['Subscription','Fixed']},{key:'category',label:'Category',type:'select',options:CATS}],
+  goals:[
+    {key:'name',label:'Name',type:'text'},{key:'target',label:'Target',type:'number'},
+    {key:'current',label:'Saved',type:'number'},{key:'monthly',label:'Monthly',type:'number'},
+    {key:'due',label:'Due Date',type:'date'},{key:'family',label:'Family',type:'check'}],
+  mileage:[
+    {key:'date',label:'Date',type:'date'},{key:'miles',label:'Miles',type:'number'},
+    {key:'purpose',label:'Purpose',type:'text'},{key:'rate',label:'$/Mile',type:'number'}],
+  docs:[
+    {key:'name',label:'Name',type:'text'},{key:'kind',label:'Kind',type:'select',options:['Tax','Insurance','Statement','Receipt','Legal','Other']},
+    {key:'note',label:'Note',type:'text'}],
+  transactions:[
+    {key:'date',label:'Date',type:'date'},{key:'merchant',label:'Merchant',type:'text'},
+    {key:'amount',label:'Amount',type:'number'},{key:'direction',label:'Direction',type:'select',options:['out','in']},
+    {key:'category',label:'Category',type:'select',options:CATS},{key:'account',label:'Account',type:'text'},
+    {key:'type',label:'Biz / Personal',type:'select',options:['per','biz']},{key:'deductible',label:'Deductible',type:'check'}],
+};
+const LABELS={accounts:'Account',holdings:'Holding',recurring:'Recurring',goals:'Goal',mileage:'Trip',docs:'Document',transactions:'Transaction'};
+const modal=$('#modal');
+let editTarget=null;
+function fieldInput(f,val){
+  if(f.type==='select') return `<div class="fld"><label>${f.label}</label><select data-k="${f.key}">`+
+    f.options.map(o=>`<option${String(val)===String(o)?' selected':''}>${esc(o)}</option>`).join('')+`</select></div>`;
+  if(f.type==='check') return `<div class="fld chk"><label>${f.label}</label><input data-k="${f.key}" type="checkbox"${val?' checked':''}></div>`;
+  const t=f.type==='number'?'number':(f.type==='date'?'date':'text');
+  const step=f.type==='number'?' step="0.01"':'';
+  return `<div class="fld"><label>${f.label}</label><input data-k="${f.key}" type="${t}"${step} value="${esc(val==null?'':val)}"></div>`;
+}
+function openEditor(collKey, item){
+  const fields=FIELDS[collKey]; if(!fields||!VAULT) return;
+  editTarget={collKey,id:item?item.id:null};
+  const data=item||defaultsFor(collKey), isNew=!item;
+  modal.innerHTML=`<div class="md-card"><div class="md-h">${isNew?'Add':'Edit'} ${LABELS[collKey]||''}</div>`+
+    fields.map(f=>fieldInput(f,data[f.key])).join('')+
+    `<div class="md-actions">`+(isNew?'':'<button class="ghost" data-mdel>Delete</button>')+
+    `<button class="ghost" data-mcancel>Cancel</button><button data-msave>Save</button></div></div>`;
+  modal.classList.add('on');
+}
+function defaultsFor(c){
+  if(c==='transactions') return {date:todayStr(),direction:'out',type:'per'};
+  if(c==='mileage') return {date:todayStr(),rate:0.67};
+  if(c==='recurring') return {cadence:'Monthly',kind:'Subscription',nextDate:todayStr()};
+  return {};
+}
+function closeModal(){ modal.classList.remove('on'); modal.innerHTML=''; editTarget=null; }
+async function saveEditor(){
+  if(!editTarget) return;
+  const {collKey,id}=editTarget, fields=FIELDS[collKey];
+  const obj=id?{...VAULT[collKey].find(x=>x.id===id)}:{id:uid()};
+  fields.forEach(f=>{ const el=modal.querySelector('[data-k="'+f.key+'"]'); if(!el) return;
+    obj[f.key]= f.type==='check'?el.checked : f.type==='number'?num(el.value): el.value; });
+  if(collKey==='accounts') obj.kind=LIAB_TYPES.includes(obj.type)?'liability':'asset';
+  if(id){ VAULT[collKey][VAULT[collKey].findIndex(x=>x.id===id)]=obj; } else VAULT[collKey].push(obj);
+  closeModal(); await persist();
+}
+async function deleteEditor(){
+  if(!editTarget||!editTarget.id) return;
+  if(!confirm('Delete this '+(LABELS[editTarget.collKey]||'item').toLowerCase()+'? This cannot be undone.')) return;
+  VAULT[editTarget.collKey]=VAULT[editTarget.collKey].filter(x=>x.id!==editTarget.id);
+  closeModal(); await persist();
 }
 
-/* deriveHardenedKey: combine passphrase + the authenticator's hmac-secret.
-   `tokenSecret` is the ArrayBuffer returned in getClientExtensionResults()
-   .hmacGetSecret.output1 on a successful assert. */
-async function deriveHardenedKey(passphrase, salt, tokenSecret) {
-  const mixed = new Uint8Array(passphrase.length + tokenSecret.byteLength);
-  mixed.set(ENC.encode(passphrase), 0);
-  mixed.set(new Uint8Array(tokenSecret), passphrase.length);
-  const baseKey = await crypto.subtle.importKey('raw', mixed, 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: KDF_ITERATIONS, hash: 'SHA-256' },
-    baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-  );
+/* row + helper builders */
+function row(it,collKey,name,sub,val,cls){ return `<div class="li tap" data-edit="${collKey}:${it.id}"><span class="k">${esc(name)}${sub?` <small>${esc(sub)}</small>`:''}</span><span class="dots"></span><span class="v ${cls||''}">${val}</span></div>`; }
+function empty(msg){ return `<div class="xp-empty">${esc(msg)}</div>`; }
+function addBtn(collKey,label){ return `<button class="add no-print" data-add="${collKey}">+ ${esc(label||('Add '+(LABELS[collKey]||'')))}</button>`; }
+function bars(entries){ const max=Math.max(1,...entries.map(e=>Math.abs(e[1]))); return entries.map(([l,v])=>`<div class="barline"><span class="bk">${esc(l)}</span><span class="bar">${'█'.repeat(Math.max(1,Math.round(Math.abs(v)/max*22)))}</span><span class="bv">${money0(v)}</span></div>`).join(''); }
+function sparkline(vals){ if(vals.length<2) return ''; const w=300,h=64,mn=Math.min(...vals),mx=Math.max(...vals),rng=(mx-mn)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-((v-mn)/rng)*h).toFixed(1)}`).join(' ');
+  return `<div class="chart"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>`; }
+
+/* =====================================================================
+   Categorization (Import + Register)
+   ===================================================================== */
+const CAT_RULES = [
+  [/erewhon|whole ?foods|trader|grocer|ralphs|safeway|coffee/i, {c:'Food', t:'per', ded:0}],
+  [/equinox|gym|fitness|sauna|cryo/i,                           {c:'Health', t:'per', ded:0}],
+  [/shell|chevron|arco|gas|fuel|exxon|mobil|76 /i,              {c:'Auto', t:'per', ded:0}],
+  [/b&h|adorama|best buy|apple store|lighting/i,                {c:'Equipment', t:'biz', ded:1}],
+  [/adobe|figma|canva|quickbooks|notion|claude|openai|saas/i,   {c:'Software', t:'biz', ded:1}],
+  [/facebook ads|google ads|meta|mailchimp|vistaprint/i,        {c:'Marketing', t:'biz', ded:1}],
+  [/state farm|geico|insurance|policy|liability/i,              {c:'Insurance', t:'biz', ded:1}],
+  [/soho house|catering|restaurant|client dinner|grill/i,       {c:'Meals 50%', t:'biz', ded:0}],
+  [/uber|lyft|airline|delta|united|hotel|airbnb/i,             {c:'Travel', t:'biz', ded:1}],
+];
+function categorize(desc){
+  const learned=settings().merchantRules; if(learned){ const k=(desc||'').toLowerCase(); for(const m in learned){ if(m&&k.includes(m)) return learned[m]; } }
+  for(const [re,info] of CAT_RULES){ if(re.test(desc||'')) return info; }
+  return null;
 }
 
 /* =====================================================================
-   RECOVERY KEY
-   Because a properly secured vault has NO "forgot password", generate a
-   one-time recovery key at setup. It encrypts a SECOND copy of the data
-   key. Print it, seal it, store it off-site (safe / bank box). This is
-   the single most-skipped, most-regretted step.
+   Views
    ===================================================================== */
-function generateRecoveryKey() {
-  const bytes = crypto.getRandomValues(new Uint8Array(20));
-  // group into readable blocks: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX
-  const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
-  return hex.toUpperCase().match(/.{1,4}/g).join('-');
+const VIEWS={};
+function renderActive(){ const fn=VIEWS[activeTab]; if(fn) try{ fn($('#v-'+activeTab)); }catch(e){ console.error(e); } updateHeader(); }
+function updateHeader(){
+  const meta=$('#head-meta'); if(!meta||!VAULT) return;
+  const name=(settings().profile&&settings().profile.name)||'Private';
+  const created=VAULT.createdAt?new Date(VAULT.createdAt).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'';
+  meta.innerHTML=`ACCOUNT&nbsp; <b>${esc(name)}</b><br>SINCE&nbsp;&nbsp;&nbsp; <b>${esc(created)}</b><br>ISSUED&nbsp;&nbsp; <b>${new Date().toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'}).toUpperCase()}</b>`;
+  $('#stamp').textContent=(name+' · LEDGER').toUpperCase();
 }
 
-const LedgerCrypto = { deriveKey, deriveHardenedKey, newVaultSalt, encrypt, decrypt,
-  registerSecurityKey, assertSecurityKey, generateRecoveryKey, b64 };
+/* ---- Overview ---- */
+VIEWS.overview=(v)=>{
+  const nw=netWorth(), as=assetsTotal(), li=liabTotal(), lq=liquidTotal();
+  const snaps=coll('snapshots');
+  let h=`<div class="hero-total"><div class="lbl">Net Worth</div><div class="amt">${money0(nw)}</div>`+
+    `<div class="sub">${coll('accounts').length} accounts · ${coll('transactions').length} transactions</div></div>`;
+  h+=sparkline(snaps.map(s=>s.netWorth));
+  h+=`<div class="split"><div><div class="l">Assets</div><div class="n">${money0(as)}</div></div>`+
+    `<div><div class="l">Liabilities</div><div class="n">${money0(li)}</div></div>`+
+    `<div><div class="l">Liquid</div><div class="n">${money0(lq)}</div></div></div>`;
+  // alerts
+  const al=[];
+  const u=uncategorized().length; if(u) al.push([`${u} transaction${u>1?'s':''} need a category`,'REVIEW']);
+  const soon=coll('recurring').filter(r=>{ if(!r.nextDate)return false; const days=(new Date(r.nextDate)-new Date())/864e5; return days>=0&&days<=7; });
+  soon.forEach(r=>al.push([`${r.name} renews — ${money0(num(r.amount))}`,'IN '+Math.max(0,Math.round((new Date(r.nextDate)-new Date())/864e5))+'D']));
+  coll('goals').filter(g=>num(g.monthly)<=0&&num(g.current)<num(g.target)).forEach(g=>al.push([`${g.name} has no monthly funding`,'GOAL']));
+  if(al.length){ h+=`<div class="alerts"><div class="ah"><span>● Needs Attention</span><span>${al.length} ITEM${al.length>1?'S':''}</span></div>`+
+    al.slice(0,5).map(a=>`<div class="ai"><span>${esc(a[0])}</span><span class="when">${esc(a[1])}</span></div>`).join('')+`</div>`; }
+  // accounts
+  h+=`<div class="section-title">Accounts</div>`;
+  const accts=coll('accounts');
+  h+= accts.length ? accts.map(a=>row(a,'accounts',a.name,(a.institution||a.type),money0(num(a.balance)),isLiab(a)?'neg':'')).join('') : empty('No accounts yet — add one to see your net worth');
+  h+=addBtn('accounts','Add Account');
+  // recent
+  const recent=txSorted().slice(0,5);
+  if(recent.length){ h+=`<div class="section-title">Recent Activity</div>`+
+    recent.map(t=>row(t,'transactions',t.merchant,fmtDate(t.date)+' · '+(t.category||'—'),money(num(t.amount)),t.direction==='in'?'pos':'neg')).join(''); }
+  v.innerHTML=h;
+};
 
-/* ---------- IndexedDB: stores ONLY ciphertext blobs ---------- */
-const DB_NAME='ledger-vault', STORE='vault';
-function idb(){
-  return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,1);
-    r.onupgradeneeded=()=>{ r.result.createObjectStore(STORE); };
-    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
-  });
-}
-async function idbGet(key){
-  const db=await idb();
-  return new Promise((res,rej)=>{
-    const t=db.transaction(STORE,'readonly').objectStore(STORE).get(key);
-    t.onsuccess=()=>res(t.result??null); t.onerror=()=>rej(t.error);
-  });
-}
-async function idbSet(key,val){
-  const db=await idb();
-  return new Promise((res,rej)=>{
-    const t=db.transaction(STORE,'readwrite').objectStore(STORE).put(val,key);
-    t.onsuccess=()=>res(true); t.onerror=()=>rej(t.error);
-  });
-}
-
-/* ---------- Session state (plaintext lives only here, in memory) ---------- */
-let VAULT_KEY=null;          // CryptoKey, non-extractable, dropped on lock
-let VAULT=null;              // decrypted data object for this session
-
-const DEFAULT_VAULT={ version:1, createdAt:null, transactions:[], settings:{} };
-
-async function saveVault(){
-  if(!VAULT_KEY||!VAULT) return;
-  const blob=await LedgerCrypto.encrypt(VAULT,VAULT_KEY);
-  await idbSet('data',blob);                 // ciphertext only
-}
-
-/* ---------- Unlock / create flow ---------- */
-async function unlock(passphrase){
-  const msg=document.getElementById('lk-msg');
-  let saltRec=await idbGet('salt');
-  const firstTime=!saltRec;
-  let salt;
-  if(firstTime){ salt=LedgerCrypto.newVaultSalt(); await idbSet('salt',LedgerCrypto.b64.enc(salt)); }
-  else { salt=LedgerCrypto.b64.dec(saltRec); }
-  const key=await LedgerCrypto.deriveKey(passphrase,salt);
-
-  if(firstTime){
-    VAULT_KEY=key;
-    // New vaults start EMPTY — sample data is opt-in via Settings → Data.
-    VAULT={...DEFAULT_VAULT, createdAt:new Date().toISOString(),
-      transactions:[], settings:{merchantRules:{}, reviewStreak:0, reviewCleared:0}};
-    await saveVault();
-    const rk=LedgerCrypto.generateRecoveryKey();
-    enterApp();
-    showRecoveryKey(rk);
-    return;
-  }
-  // returning: try to decrypt the stored blob to verify the passphrase
-  const blob=await idbGet('data');
-  let data;
-  try{
-    data = blob ? await LedgerCrypto.decrypt(blob,key) : {...DEFAULT_VAULT};
-  }catch(e){
-    msg.textContent='Wrong passphrase — try again.'; msg.className='lk-msg err';
-    document.getElementById('lk-pass').value='';
-    return;
-  }
-  // passphrase verified. Enforce the optional hardware-key second factor before
-  // revealing the app (key requirement is stored inside the decrypted vault).
-  VAULT=data; VAULT_KEY=key;
-  const wa=VAULT.settings&&VAULT.settings.webauthn;
-  if(wa&&wa.credentialId){
-    msg.textContent='Touch your security key…'; msg.className='lk-msg';
-    try{
-      await LedgerCrypto.assertSecurityKey(LedgerCrypto.b64.dec(wa.credentialId));
-    }catch(e){
-      lockVault();
-      msg.textContent='Security key required — unlock cancelled.'; msg.className='lk-msg err';
-      return;
-    }
-  }
-  enterApp();
-}
-
-function enterApp(){
-  document.getElementById('lock').style.display='none';
-  document.body.classList.remove('locked-body');
-  document.getElementById('lk-pass').value='';
-  document.getElementById('lk-msg').textContent='';
-  hydrate();                 // render every tab from the live encrypted VAULT
-}
-function lockVault(){
-  VAULT_KEY=null; VAULT=null;
-  document.getElementById('lock').style.display='flex';
-  document.body.classList.add('locked-body');
-  document.getElementById('lk-pass').focus();
-}
-function showRecoveryKey(rk){
-  const m=document.getElementById('lk-msg');
-  // already inside app; surface a one-time alert-style note
-  setTimeout(()=>{
-    alert('VAULT CREATED.\n\nYour one-time recovery key:\n\n'+rk+
-      '\n\nWrite it down and store it OFFLINE. There is no password reset — this key is the only other way in.');
-  },300);
-}
-
-/* check existing vault to tailor the prompt */
-(async function initLock(){
-  const exists=await idbGet('salt');
-  const hint=document.getElementById('lk-hint');
-  const btn=document.getElementById('lk-unlock');
-  if(!exists){
-    hint.textContent='First run — choose a strong passphrase to create your vault.';
-    btn.textContent='Create Vault';
-  }
-  document.body.classList.add('locked-body');
-  const go=()=>{
-    const p=document.getElementById('lk-pass').value;
-    if(p.length<8){ document.getElementById('lk-msg').textContent='Use at least 8 characters.'; document.getElementById('lk-msg').className='lk-msg err'; return; }
-    unlock(p);
-  };
-  btn.addEventListener('click',go);
-  document.getElementById('lk-pass').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
-  document.getElementById('lockNow').addEventListener('click',lockVault);
-})();
-
-/* ---------- register service worker for offline / PWA ---------- */
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
-
-// Theme toggle
-const body=document.body, tbtn=document.getElementById('themeBtn');
-tbtn.addEventListener('click',()=>{
-  const dark=body.getAttribute('data-theme')==='dark';
-  body.setAttribute('data-theme',dark?'light':'dark');
-  tbtn.textContent=dark?'◐ DARK MODE':'◑ LIGHT MODE';
-});
-
-// Tabs
-const tabBtns=[...document.querySelectorAll('#tabs button')];
-const views=[...document.querySelectorAll('.view')];
-tabBtns.forEach(b=>b.addEventListener('click',()=>{
-  tabBtns.forEach(x=>x.classList.remove('on'));b.classList.add('on');
-  views.forEach(v=>v.classList.remove('on'));
-  document.getElementById('v-'+b.dataset.v).classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'});
-}));
-
-// Receipt filters
-const chips=[...document.querySelectorAll('#chips button')];
-const rrows=[...document.querySelectorAll('#rcpt .li')];
-chips.forEach(c=>c.addEventListener('click',()=>{
-  chips.forEach(x=>x.classList.remove('on'));c.classList.add('on');
-  const f=c.dataset.f;
-  rrows.forEach(r=>{r.style.display=(f==='all'||(r.dataset.t||'').includes(f))?'':'none';});
-}));
-
-// ===== IMPORT: local CSV parse + auto-categorize =====
-// Merchant keyword -> {category, type}. This is the rules engine that
-// turns raw bank descriptions into categorized, deductible-flagged rows.
-const CAT_RULES = [
-  [/erewhon|whole ?foods|trader|grocer|ralphs|safeway/i,      {c:'Food', t:'per', ded:0}],
-  [/equinox|gym|fitness|sauna|cryo/i,                          {c:'Health', t:'per', ded:0}],
-  [/shell|chevron|arco|gas|fuel|exxon|mobil/i,                {c:'Auto', t:'per', ded:0}],
-  [/b&h|adorama|best buy|apple store|backdrop|lighting/i,     {c:'Equipment', t:'biz', ded:1}],
-  [/adobe|figma|canva|quickbooks|notion|claude|openai|saas/i, {c:'Software', t:'biz', ded:1}],
-  [/vistaprint|facebook ads|google ads|meta|mailchimp/i,      {c:'Marketing', t:'biz', ded:1}],
-  [/state farm|geico|insurance|policy|liability/i,            {c:'Insurance', t:'biz', ded:1}],
-  [/soho house|catering|restaurant|client dinner|grill/i,     {c:'Meals 50%', t:'biz', ded:0}],
-  [/uber|lyft|airline|delta|united|hotel|airbnb/i,            {c:'Travel', t:'biz', ded:1}],
-];
-function categorize(desc){
-  // learned rules (from confirming categories in Review) take precedence
-  const learned=VAULT&&VAULT.settings&&VAULT.settings.merchantRules;
-  if(learned){ const k=desc.toLowerCase(); for(const m in learned){ if(k.includes(m)) return learned[m]; } }
-  for(const [re,info] of CAT_RULES){ if(re.test(desc)) return info; }
-  return null; // -> goes to Review queue
-}
-function parseCSV(text){
-  const lines=text.split(/\r?\n/).filter(l=>l.trim());
-  if(!lines.length) return [];
-  // detect header + delimiter
-  const delim = lines[0].includes('\t') ? '\t' : ',';
-  const header = lines[0].toLowerCase().split(delim).map(h=>h.replace(/"/g,'').trim());
-  const di = header.findIndex(h=>/date/.test(h));
-  const ai = header.findIndex(h=>/amount|debit|charge|withdraw/.test(h));
-  const mi = header.findIndex(h=>/desc|payee|merchant|name|memo/.test(h));
-  const hasHeader = di>-1 || ai>-1 || mi>-1;
-  const rows=[];
-  (hasHeader?lines.slice(1):lines).forEach(line=>{
-    const f=line.split(delim).map(x=>x.replace(/^"|"$/g,'').trim());
-    const date=f[di>-1?di:0]||'';
-    const merch=(f[mi>-1?mi:1]||'').slice(0,40);
-    let amt=parseFloat((f[ai>-1?ai:2]||'').replace(/[$,()]/g,''))||0;
-    amt=Math.abs(amt);
-    if(!merch||!amt) return;
-    const cat=categorize(merch);
-    rows.push({d:date, m:merch, a:amt, ...(cat||{c:null,t:'per',ded:0})});
-  });
-  return rows;
-}
-function handleFiles(files){
-  let all=[];
-  let pending=files.length;
-  if(!pending) return;
-  [...files].forEach(file=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      all=all.concat(parseCSV(e.target.result));
-      if(--pending===0) showImport(all);
-    };
-    r.onerror=()=>{ if(--pending===0) showImport(all); };
-    r.readAsText(file);
-  });
-}
-let impRows=[];                 // last parsed rows, awaiting confirm
-function showImport(rows){
-  impRows=rows;
-  const res=document.getElementById('imp-result');
-  const help=document.getElementById('imp-help');
-  res.hidden=false; help.hidden=true;
-  const done=document.getElementById('imp-done'); if(done)done.hidden=true;
-  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=!rows.length;
-  const total=rows.reduce((s,x)=>s+x.a,0);
-  const catd=rows.filter(x=>x.c).length;
-  document.getElementById('imp-rows').textContent=rows.length;
-  document.getElementById('imp-cat').textContent=rows.length?Math.round(catd/rows.length*100)+'%':'0%';
-  document.getElementById('imp-tot').textContent='$'+Math.round(total).toLocaleString();
-  const prev=document.getElementById('imp-preview');
-  prev.className='xp-list';
-  prev.innerHTML=rows.slice(0,12).map(x=>{
-    const tag=x.c?'<span class="tag k">'+x.c+'</span>':'<span class="tag">REVIEW</span>';
-    return '<div class="li"><span class="k">'+(x.m||'—')+' <small>'+(x.d||'')+'</small></span><span class="dots"></span><span class="v">$'+x.a.toFixed(2)+' '+tag+'</span></div>';
-  }).join('');
-  const need=rows.length-catd;
-  document.getElementById('imp-note').textContent=
-    need>0 ? need+' ROWS NEED A QUICK CATEGORY — SENT TO THE REVIEW TAB' : 'ALL ROWS AUTO-CATEGORIZED ✓';
-}
-(function initImport(){
-  const drop=document.getElementById('imp-drop');
-  const input=document.getElementById('imp-file');
-  if(!drop) return;
-  drop.addEventListener('click',()=>input.click());
-  drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});
-  input.addEventListener('change',e=>handleFiles(e.target.files));
-  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
-  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
-  drop.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files)handleFiles(e.dataTransfer.files);});
-  const confirm=document.getElementById('imp-confirm');
-  if(confirm) confirm.addEventListener('click',commitImport);
-})();
-// Append parsed rows to the vault, deduping on date+merchant+amount.
-async function commitImport(){
-  if(!VAULT||!impRows.length) return;
-  const seen=new Set(txns().map(t=>t.date+'|'+t.merchant+'|'+t.amount));
-  let added=0, dup=0;
-  impRows.forEach(r=>{
-    const key=r.d+'|'+r.m+'|'+r.a;
-    if(seen.has(key)){ dup++; return; }
-    seen.add(key);
-    VAULT.transactions.push({
-      id:uid(), date:r.d, merchant:r.m, amount:r.a, direction:'out',
-      category:r.c, account:'Imported', type:r.t||'per', deductible:r.ded||0,
-    });
-    added++;
-  });
-  await saveVault();
-  impRows=[];
-  const done=document.getElementById('imp-done');
-  if(done){ done.hidden=false; done.textContent=added+' ADDED · '+dup+' DUPLICATE'+(dup===1?'':'S')+' SKIPPED · SAVED TO ENCRYPTED LEDGER'; }
-  const btn=document.getElementById('imp-confirm'); if(btn)btn.disabled=true;
-  hydrate();                 // Explore + Review reflect the new rows immediately
-}
-
-// ===== REVIEW: uncategorized queue (live from VAULT) + streak learning =====
-const RV_CATS = ['Food','Equipment','Auto','Software','Marketing','Health','Meals 50%','Travel','Other'];
-// Uncategorized transactions = anything in the vault with no category yet.
-function reviewQueue(){ return txns().filter(t=>!t.category); }
-async function reviewConfirm(tx, cat){
-  tx.category=cat;
-  // learn: remember this merchant -> category so the same name auto-tags next time
-  const s=settings();
-  s.merchantRules=s.merchantRules||{};
-  s.merchantRules[tx.merchant.toLowerCase()]={c:cat, t:tx.type||'per', ded:tx.deductible||0};
-  s.reviewCleared=(s.reviewCleared||0)+1;
-  await saveVault();
-  renderReview();
-}
-function renderReview(){
-  const q=document.getElementById('rv-queue');
-  if(!q) return;
-  const prog=document.getElementById('rv-prog');
-  const queue=reviewQueue();
-  const cleared=settings().reviewCleared||0;
-  if(!queue.length){
-    q.innerHTML='<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div>'
-      +'<div class="ds">Inbox zero. Net worth is up this week — go enjoy your Sunday.</div></div>';
-    if(prog) prog.textContent=cleared+' CLEARED · STREAK EXTENDED';
-    const sn=document.getElementById('rv-streak-n'); if(sn) sn.textContent=String((settings().reviewStreak||0)+1);
-    return;
-  }
-  if(prog) prog.textContent=cleared+' OF '+(cleared+queue.length)+' CLEARED · ~'+Math.max(1,queue.length)+' MIN LEFT';
-  const x=queue[0];
-  const g=categorize(x.merchant)||{};            // suggested category + biz hint
-  const guess=g.c||'Other', biz=g.t==='biz';
-  const cats=[guess, ...RV_CATS.filter(c=>c!==guess)];
-  const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
-  q.innerHTML='<div class="rv-q"><div class="qh"><span class="qm">'+x.merchant
-    +'<small>'+dd+(biz?' · likely business':'')+'</small></span><span class="qa">$'+x.amount.toFixed(2)+'</span></div>'
-    +'<div class="rv-cats">'+cats.map((c,i)=>'<button class="'+(biz&&i===0?'biz':'')+'" data-c="'+c+'">'
-    +(i===0?'✓ '+c:c)+'</button>').join('')+'</div></div>';
-  [...q.querySelectorAll('.rv-cats button')].forEach(btn=>btn.addEventListener('click',()=>{
-    reviewConfirm(x, btn.dataset.c);
-  }));
-}
-// ===== LIVE DATA · VAULT.transactions is the single source of truth =====
-// Canonical shape: {id,date,merchant,amount,direction:'in'|'out',category,account,type:'biz'|'per',deductible:0|1}
-function txns(){ return (VAULT&&VAULT.transactions)||[]; }
-function settings(){ if(VAULT&&!VAULT.settings)VAULT.settings={}; return (VAULT&&VAULT.settings)||{}; }
-const uid=()=>(crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
-
-// Demo set written into a FRESH vault so the app isn't empty on first run.
-// Once written these are real, persisted, encrypted rows like any other.
-const SEED_OUT = [
-  {d:'2026-06-08',m:'B&H Photo',c:'Equipment',a:642.18,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-06-06',m:'Shell',c:'Travel',a:78.40,t:'biz',ded:1,acct:'Checking'},
-  {d:'2026-06-05',m:'Soho House',c:'Meals 50%',a:214.66,t:'biz',ded:0,acct:'Amex'},
-  {d:'2026-06-03',m:'Adobe',c:'Software',a:659.88,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-06-02',m:'Erewhon',c:'Food',a:186.42,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-06-01',m:'Equinox',c:'Health',a:285.00,t:'per',ded:0,acct:'Amex'},
-  {d:'2026-05-30',m:'Vistaprint',c:'Marketing',a:312.09,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-05-28',m:'State Farm',c:'Insurance',a:487.00,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-05-24',m:'Erewhon',c:'Food',a:204.17,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-05-22',m:'Shell',c:'Auto',a:71.20,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-05-18',m:'B&H Photo',c:'Equipment',a:1284.50,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-05-15',m:'Soho House',c:'Meals 50%',a:178.30,t:'biz',ded:0,acct:'Amex'},
-  {d:'2026-05-11',m:'Erewhon',c:'Food',a:162.88,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-05-04',m:'Equinox',c:'Health',a:285.00,t:'per',ded:0,acct:'Amex'},
-  {d:'2026-04-27',m:'Adobe',c:'Software',a:54.99,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-04-21',m:'Shell',c:'Travel',a:92.10,t:'biz',ded:1,acct:'Checking'},
-  {d:'2026-04-19',m:'Erewhon',c:'Food',a:221.43,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-04-14',m:'Coachella Catering',c:'Meals 50%',a:540.00,t:'biz',ded:0,acct:'Business'},
-  {d:'2026-04-12',m:'Shell',c:'Travel',a:128.55,t:'biz',ded:1,acct:'Checking'},
-  {d:'2026-04-06',m:'Equinox',c:'Health',a:285.00,t:'per',ded:0,acct:'Amex'},
-  {d:'2026-03-29',m:'Erewhon',c:'Food',a:198.04,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-03-22',m:'Vistaprint',c:'Marketing',a:265.40,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-03-15',m:'B&H Photo',c:'Equipment',a:412.77,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-03-08',m:'Erewhon',c:'Food',a:175.62,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-02-26',m:'Adobe',c:'Software',a:54.99,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-02-18',m:'Equinox',c:'Health',a:285.00,t:'per',ded:0,acct:'Amex'},
-  {d:'2026-02-11',m:'Erewhon',c:'Food',a:209.88,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-02-03',m:'State Farm',c:'Insurance',a:487.00,t:'biz',ded:1,acct:'Business'},
-  {d:'2026-01-24',m:'Erewhon',c:'Food',a:183.20,t:'per',ded:0,acct:'Checking'},
-  {d:'2026-01-15',m:'B&H Photo',c:'Equipment',a:868.40,t:'biz',ded:1,acct:'Business'},
-];
-// Uncategorized demo rows (category:null) — these surface in the Review queue.
-const SEED_REVIEW = [
-  {d:'2026-06-09',m:'SQ *THE COFFEE BAR',a:14.50,acct:'Checking'},
-  {d:'2026-06-07',m:'PAYPAL *PROPRENTAL',a:220.00,acct:'Business'},
-  {d:'2026-06-06',m:'UNION 76 STATION',a:62.30,acct:'Checking'},
-  {d:'2026-06-04',m:'AMZN MKTP US*2X9',a:48.99,acct:'Checking'},
-];
-function seedTransactions(){
-  const out=SEED_OUT.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
-    category:x.c,account:x.acct,type:x.t,deductible:x.ded}));
-  const rev=SEED_REVIEW.map(x=>({id:uid(),date:x.d,merchant:x.m,amount:x.a,direction:'out',
-    category:null,account:x.acct,type:'per',deductible:0}));
-  return out.concat(rev);
-}
-const NOW = new Date('2026-06-10');
-const xpState = {range:'30', cat:'all', merch:'all', type:'all', from:'', to:'', min:'', max:'', group:'none'};
-
-function moneyFmt(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function moneyShort(n){return '$'+Math.round(n).toLocaleString('en-US');}
-
-function xpFilter(){
-  let lo=null, hi=null;
-  if(xpState.from){lo=new Date(xpState.from);}
-  if(xpState.to){hi=new Date(xpState.to);}
-  if(!lo && !hi){ // range chips only apply when no custom dates
-    if(xpState.range==='ytd'){lo=new Date('2026-01-01');}
-    else if(xpState.range!=='all'){lo=new Date(NOW); lo.setDate(lo.getDate()-parseInt(xpState.range));}
-  }
-  const min=xpState.min!==''?parseFloat(xpState.min):null;
-  const max=xpState.max!==''?parseFloat(xpState.max):null;
-  return txns().filter(x=>{
-    if(!x.category) return false;              // uncategorized rows live in Review, not Explore
-    const dt=new Date(x.date);
-    if(lo && dt<lo) return false;
-    if(hi && dt>hi) return false;
-    if(xpState.cat!=='all' && x.category!==xpState.cat) return false;
-    if(xpState.merch!=='all' && x.merchant!==xpState.merch) return false;
-    if(xpState.type==='biz' && x.type!=='biz') return false;
-    if(xpState.type==='per' && x.type!=='per') return false;
-    if(xpState.type==='ded' && !x.deductible) return false;
-    if(min!==null && x.amount<min) return false;
-    if(max!==null && x.amount>max) return false;
-    return true;
-  });
-}
-
-function weekKey(dateStr){
-  const d=new Date(dateStr); const day=(d.getDay()+6)%7; // Mon=0
-  const mon=new Date(d); mon.setDate(d.getDate()-day);
-  return mon.toISOString().slice(0,10);
-}
-
-function xpRender(){
-  const rows=xpFilter();
-  const total=rows.reduce((s,x)=>s+x.amount,0);
-  document.getElementById('xp-total').textContent=moneyFmt(total);
-  document.getElementById('xp-count').textContent=rows.length+' TXN'+(rows.length===1?'':'S');
-  const out=document.getElementById('xp-out');
-  if(!rows.length){out.innerHTML='<div class="xp-empty">No transactions match these filters</div>';return;}
-
-  if(xpState.group==='none'){
-    rows.sort((a,b)=>b.date.localeCompare(a.date));
-    out.className='xp-list';
-    out.innerHTML=rows.map(x=>{
-      const dd=new Date(x.date).toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase();
-      const tag=x.deductible?'<span class="tag k">DED</span>':(x.type==='biz'?'<span class="tag">BIZ</span>':'<span class="tag">PERS</span>');
-      return '<div class="li"><span class="k">'+x.merchant+' <small>'+dd+' · '+x.category+'</small></span><span class="dots"></span><span class="v">'+moneyFmt(x.amount)+' '+tag+'</span></div>';
-    }).join('');
-    return;
-  }
-
-  // grouped
-  const map={};
-  rows.forEach(x=>{
-    let key;
-    if(xpState.group==='category')key=x.category;
-    else if(xpState.group==='merchant')key=x.merchant;
-    else key=weekKey(x.date);
-    if(!map[key])map[key]={sum:0,n:0};
-    map[key].sum+=x.amount; map[key].n++;
-  });
-  let entries=Object.entries(map);
-  if(xpState.group==='week')entries.sort((a,b)=>b[0].localeCompare(a[0]));
-  else entries.sort((a,b)=>b[1].sum-a[1].sum);
-  const maxSum=Math.max(...entries.map(e=>e[1].sum));
-  out.className='xp-group';
-  out.innerHTML=entries.map(([k,v])=>{
-    let label=k, sub=v.n+' txn'+(v.n===1?'':'s');
-    if(xpState.group==='week'){
-      const wd=new Date(k);
-      label='Wk of '+wd.toLocaleDateString('en-US',{month:'short',day:'2-digit'});
-    }
-    const pct=(v.sum/maxSum)*100;
-    return '<div class="xp-grow"><span class="gl">'+label+'<small>'+sub+'</small></span>'
-      +'<span class="gbar"><i style="width:'+pct.toFixed(1)+'%"></i></span>'
-      +'<span class="gv">'+moneyShort(v.sum)+'</span></div>';
-  }).join('');
-}
-
-function xpBind(groupId, key){
-  const btns=[...document.querySelectorAll('#'+groupId+' button')];
-  btns.forEach(b=>b.addEventListener('click',()=>{
-    btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');
-    xpState[key]=b.dataset.r||b.dataset.c||b.dataset.m||b.dataset.t||b.dataset.g;
-    if(groupId==='xp-range'){document.getElementById('xp-from').value='';document.getElementById('xp-to').value='';xpState.from='';xpState.to='';}
-    xpRender();
-  }));
-}
-if(document.getElementById('v-explore')){
-  xpBind('xp-range','range');
-  xpBind('xp-cat','cat');
-  xpBind('xp-merch','merch');
-  xpBind('xp-type','type');
-  xpBind('xp-groupby','group');
-  ['from','to','min','max'].forEach(f=>{
-    document.getElementById('xp-'+f).addEventListener('input',e=>{xpState[f]=e.target.value;xpRender();});
-  });
-  xpRender();
-}
+/* ---- Register ---- */
 let regIO='out';
-const ioBtns=[...document.querySelectorAll('#ioToggle button')];
-ioBtns.forEach(b=>b.addEventListener('click',()=>{
-  ioBtns.forEach(x=>x.classList.remove('on'));b.classList.add('on');regIO=b.dataset.io;
-}));
-const fmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmt0=n=>(n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
-const todayStr=()=>new Date().toISOString().slice(0,10);
-function todayTx(){const t=todayStr();return txns().filter(x=>(x.date||'').slice(0,10)===t);}
-function refreshTotals(){
-  let tin=0,tout=0;
-  todayTx().forEach(x=>{ if(x.direction==='in')tin+=x.amount; else tout+=x.amount; });
-  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=fmt0(v);};
-  set('todIn',tin); set('todOut',tout); set('todNet',tin-tout);
-}
-function renderTape(){
-  const tape=document.getElementById('tape'); if(!tape) return;
-  const list=todayTx().slice().sort((a,b)=>(b.time||'').localeCompare(a.time||''));
-  if(!list.length){ tape.innerHTML='<div class="foot-note" style="text-align:center">No entries yet today — add one above.</div>'; return; }
-  tape.innerHTML=list.map(x=>{
-    const sign=x.direction==='in'?'pos':'neg', tm=x.time?x.time+' · ':'';
-    return '<div class="li"><span class="k">'+tm+x.merchant+' <small>'+(x.category||'—')+' · '+(x.account||'')+'</small></span><span class="dots"></span><span class="v '+sign+'">'+fmt(x.amount)+'</span></div>';
-  }).join('');
-}
-async function addEntry(){
-  const m=document.getElementById('r-merchant').value.trim();
-  const a=parseFloat(document.getElementById('r-amount').value);
-  const cat=document.getElementById('r-cat').value;
-  const acct=document.getElementById('r-acct').value;
-  if(!m||!a||a<=0||!VAULT){return;}
-  const now=new Date();
-  const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
-  const hint=categorize(m)||{};
-  VAULT.transactions.push({
-    id:uid(), date:todayStr(), time:hh+':'+mm, merchant:m, amount:a,
-    direction:regIO==='in'?'in':'out', category:cat, account:acct,
-    type:hint.t||'per', deductible:hint.ded||0,
-  });
-  await saveVault();                 // persist the mutation, encrypted
-  renderTape(); refreshTotals();
-  const first=document.querySelector('#tape .li'); if(first)first.classList.add('flash');
-  document.getElementById('r-merchant').value='';
-  document.getElementById('r-amount').value='';
-  document.getElementById('r-merchant').focus();
-}
-document.getElementById('r-add').addEventListener('click',addEntry);
-document.getElementById('r-amount').addEventListener('keydown',e=>{if(e.key==='Enter')addEntry();});
-
-// ---------- single hydrate: every tab renders from the live VAULT ----------
-function hydrate(){
-  renderTape();
-  refreshTotals();
-  renderReview();
-  renderSecurity();
-  if(document.getElementById('v-explore')) xpRender();
-}
-
-// ===== SETTINGS: encrypted export / import (backup · multi-device) =====
-// Exports the stored ciphertext (salt + data envelope). Salt is non-secret and
-// data is AES-256-GCM ciphertext, so the file is safe at rest. Plaintext never
-// leaves memory. Restore needs this file AND the passphrase.
-async function exportVault(){
-  const note=document.getElementById('set-export-note');
-  const salt=await idbGet('salt');
-  const data=await idbGet('data');
-  if(!data||!salt){ if(note){note.hidden=false;note.textContent='NOTHING TO EXPORT YET.';} return; }
-  const payload=JSON.stringify({app:'LEDGER', fmt:1, salt, data, exportedAt:new Date().toISOString()});
-  const url=URL.createObjectURL(new Blob([payload],{type:'application/octet-stream'}));
-  const a=document.createElement('a');
-  a.href=url; a.download='ledger-'+new Date().toISOString().slice(0,10)+'.ledger';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  if(note){ note.hidden=false; note.textContent='EXPORTED · CIPHERTEXT ONLY · STORE IT SOMEWHERE SAFE'; }
-}
-function importVaultFile(file){
-  const note=document.getElementById('set-import-note');
-  const fail=m=>{ if(note){note.hidden=false;note.textContent=m;} };
-  const r=new FileReader();
-  r.onload=async e=>{
-    let obj;
-    try{ obj=JSON.parse(e.target.result); }catch(_){ return fail('NOT A VALID .ledger FILE.'); }
-    if(!obj||obj.app!=='LEDGER'||!obj.salt||!obj.data) return fail('NOT A VALID LEDGER BACKUP.');
-    if(!confirm('Replace the vault on THIS device with the imported backup?\n\nYour current local vault will be overwritten. You will unlock the imported vault with ITS passphrase.')) return;
-    await idbSet('salt',obj.salt);
-    await idbSet('data',obj.data);
-    lockVault();               // drop keys; force re-unlock against the imported salt+data
-    const msg=document.getElementById('lk-msg');
-    if(msg){ msg.textContent='Vault imported — enter its passphrase to unlock.'; msg.className='lk-msg'; }
+VIEWS.register=(v)=>{
+  const acctOpts=coll('accounts').map(a=>`<option>${esc(a.name)}</option>`).join('');
+  const tm=thisMonth(), f=flowFor(t=>ym(t.date)===tm);
+  let h=`<div class="section-title">Add Transaction</div>`+
+   `<div class="reg-form no-print">`+
+   `<div class="io" id="ioToggle"><button class="${regIO==='out'?'on':''}" data-io="out">− Money Out</button><button class="${regIO==='in'?'on':''}" data-io="in">+ Money In</button></div>`+
+   `<div class="fld"><label>Merchant</label><input id="r-merchant" type="text" placeholder="e.g. Whole Foods" autocomplete="off"></div>`+
+   `<div class="fld"><label>Amount</label><input id="r-amount" type="number" inputmode="decimal" placeholder="0.00" step="0.01" min="0"></div>`+
+   `<div class="fld"><label>Category</label><select id="r-cat">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>`+
+   `<div class="fld"><label>Account</label><input id="r-acct" list="acctlist" placeholder="optional"><datalist id="acctlist">${acctOpts}</datalist></div>`+
+   `<div class="fld"><label>Business</label><select id="r-type"><option value="per">Personal</option><option value="biz">Business</option></select></div>`+
+   `<div class="fld chk"><label>Deductible</label><input id="r-ded" type="checkbox"></div>`+
+   `<button class="add" id="r-add">▸ Record</button></div>`;
+  h+=`<div class="split"><div><div class="l">Month In</div><div class="n">${money0(f.inc)}</div></div>`+
+    `<div><div class="l">Month Out</div><div class="n">${money0(f.exp)}</div></div>`+
+    `<div><div class="l">Net</div><div class="n">${money0(f.net)}</div></div></div>`;
+  h+=`<div class="section-title">Recent</div>`;
+  const recent=txSorted().slice(0,25);
+  h+= recent.length ? recent.map(t=>row(t,'transactions',t.merchant,fmtDate(t.date)+' · '+(t.category||'—')+(t.account?' · '+t.account:''),money(num(t.amount)),t.direction==='in'?'pos':'neg')).join('') : empty('No transactions yet');
+  v.innerHTML=h;
+  $$('#ioToggle button').forEach(b=>b.addEventListener('click',()=>{ regIO=b.dataset.io; $$('#ioToggle button').forEach(x=>x.classList.toggle('on',x===b)); }));
+  const add=async()=>{
+    const m=$('#r-merchant').value.trim(), a=num($('#r-amount').value);
+    if(!m||a<=0) return;
+    VAULT.transactions.push({ id:uid(), date:todayStr(), merchant:m, amount:a,
+      direction:regIO==='in'?'in':'out', category:$('#r-cat').value, account:$('#r-acct').value.trim(),
+      type:$('#r-type').value, deductible:$('#r-ded').checked });
+    await persist();
   };
-  r.onerror=()=>fail('COULD NOT READ THE FILE.');
-  r.readAsText(file);
+  $('#r-add').addEventListener('click',add);
+  $('#r-amount').addEventListener('keydown',e=>{ if(e.key==='Enter') add(); });
+};
+
+/* ---- Explore ---- */
+const xpState={range:'30',group:'none',cat:'all'};
+VIEWS.explore=(v)=>{
+  const ranges=[['7','Week'],['30','30 Days'],['90','90 Days'],['ytd','YTD'],['all','All']];
+  const cats=['all',...[...new Set(coll('transactions').map(t=>t.category).filter(Boolean))]];
+  const groups=[['none','List'],['category','Category'],['merchant','Merchant']];
+  let lo=null; if(xpState.range==='ytd') lo=new Date(new Date().getFullYear(),0,1);
+  else if(xpState.range!=='all'){ lo=new Date(); lo.setDate(lo.getDate()-parseInt(xpState.range)); }
+  let rows=coll('transactions').filter(t=>t.direction!=='in');
+  if(lo) rows=rows.filter(t=>new Date(t.date)>=lo);
+  if(xpState.cat!=='all') rows=rows.filter(t=>t.category===xpState.cat);
+  const total=rows.reduce((s,t)=>s+num(t.amount),0);
+  let h=`<div class="section-title">Explore Spending</div><div class="xp-panel">`+
+    `<div class="xp-row"><div class="xp-lab">Range</div><div class="xp-chips" id="xp-range">${ranges.map(r=>`<button class="${xpState.range===r[0]?'on':''}" data-r="${r[0]}">${r[1]}</button>`).join('')}</div></div>`+
+    `<div class="xp-row"><div class="xp-lab">Category</div><div class="xp-chips" id="xp-cat">${cats.map(c=>`<button class="${xpState.cat===c?'on':''}" data-c="${esc(c)}">${c==='all'?'All':esc(c)}</button>`).join('')}</div></div>`+
+    `<div class="xp-row"><div class="xp-lab">Group</div><div class="xp-chips" id="xp-group">${groups.map(g=>`<button class="${xpState.group===g[0]?'on':''}" data-g="${g[0]}">${g[1]}</button>`).join('')}</div></div></div>`;
+  h+=`<div class="xp-result-head"><span class="xr-amt">${money(total)}</span><span class="xr-cnt">${rows.length} TXN${rows.length===1?'':'S'}</span></div>`;
+  if(!rows.length){ h+=empty('No transactions match'); }
+  else if(xpState.group==='none'){ h+=rows.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>row(t,'transactions',t.merchant,fmtDate(t.date)+' · '+(t.category||'—'),money(num(t.amount)),'neg')).join(''); }
+  else { const m={}; rows.forEach(t=>{ const k=(xpState.group==='category'?t.category:t.merchant)||'—'; m[k]=(m[k]||0)+num(t.amount); });
+    const ent=Object.entries(m).sort((a,b)=>b[1]-a[1]), mx=Math.max(...ent.map(e=>e[1]));
+    h+=`<div style="margin-top:8px">`+ent.map(([k,val])=>`<div class="xp-grow"><span class="gl">${esc(k)}</span><span class="gbar"><i style="width:${(val/mx*100).toFixed(1)}%"></i></span><span class="gv">${money0(val)}</span></div>`).join('')+`</div>`; }
+  v.innerHTML=h;
+  const bind=(id,key,attr)=>$$('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{ xpState[key]=b.dataset[attr]; renderActive(); }));
+  bind('xp-range','range','r'); bind('xp-cat','cat','c'); bind('xp-group','group','g');
+};
+
+/* ---- Import ---- */
+let impRows=[];
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()); if(!lines.length) return [];
+  const delim=lines[0].includes('\t')?'\t':','; const header=lines[0].toLowerCase().split(delim).map(x=>x.replace(/"/g,'').trim());
+  const di=header.findIndex(h=>/date/.test(h)), ai=header.findIndex(h=>/amount|debit|charge|withdraw/.test(h)), mi=header.findIndex(h=>/desc|payee|merchant|name|memo/.test(h));
+  const hasHeader=di>-1||ai>-1||mi>-1; const out=[];
+  (hasHeader?lines.slice(1):lines).forEach(line=>{ const f=line.split(delim).map(x=>x.replace(/^"|"$/g,'').trim());
+    const date=f[di>-1?di:0]||todayStr(), merch=(f[mi>-1?mi:1]||'').slice(0,48);
+    let amt=Math.abs(parseFloat((f[ai>-1?ai:2]||'').replace(/[$,()]/g,''))||0);
+    if(!merch||!amt) return; const cat=categorize(merch);
+    out.push({date,merchant:merch,amount:amt,category:cat?cat.c:null,type:cat?cat.t:'per',deductible:cat?cat.ded:0}); });
+  return out;
 }
-// ----- optional WebAuthn second factor (tier A: an unlock gate, not key-binding) -----
-function renderSecurity(){
-  const st=document.getElementById('sec-status'), btn=document.getElementById('sec-toggle');
-  if(!st||!btn) return;
-  const on=!!(VAULT&&VAULT.settings&&VAULT.settings.webauthn&&VAULT.settings.webauthn.credentialId);
-  st.textContent=on?'On · key required at unlock':'Off';
-  btn.textContent=on?'▸ Remove Security Key':'▸ Enable Security Key';
-  btn.dataset.on=on?'1':'';
+VIEWS.import=(v)=>{
+  let h=`<div class="section-title">Import CSV</div>`+
+    `<p style="font-size:12px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Export a CSV from any bank or card and drop it here. Parsing runs locally — nothing is uploaded.</p>`+
+    `<div class="imp-drop" id="imp-drop" tabindex="0" role="button"><div class="ic">↓</div><div class="it">Drop CSV here</div><div class="is">or tap to choose a file</div><input type="file" id="imp-file" accept=".csv,text/csv" hidden></div>`;
+  if(impRows.length){ const catd=impRows.filter(r=>r.category).length;
+    h+=`<div class="imp-summary"><div><div class="l">Rows</div><div class="n">${impRows.length}</div></div>`+
+      `<div><div class="l">Categorized</div><div class="n">${Math.round(catd/impRows.length*100)}%</div></div>`+
+      `<div><div class="l">Total</div><div class="n">${money0(impRows.reduce((s,r)=>s+r.amount,0))}</div></div></div>`;
+    h+=impRows.slice(0,12).map(r=>`<div class="li"><span class="k">${esc(r.merchant)} <small>${esc(r.date)}</small></span><span class="dots"></span><span class="v">${money(r.amount)} ${r.category?`<span class="tag k">${esc(r.category)}</span>`:'<span class="tag">REVIEW</span>'}</span></div>`).join('');
+    h+=`<button class="add no-print" id="imp-commit">▸ Add ${impRows.length} to Ledger</button>`; }
+  v.innerHTML=h;
+  const input=$('#imp-file'), drop=$('#imp-drop');
+  drop.addEventListener('click',()=>input.click());
+  drop.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); input.click(); }});
+  const handle=file=>{ const r=new FileReader(); r.onload=e=>{ impRows=parseCSV(e.target.result); renderActive(); }; r.readAsText(file); };
+  input.addEventListener('change',e=>{ if(e.target.files[0]) handle(e.target.files[0]); });
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+  const c=$('#imp-commit'); if(c) c.addEventListener('click',async()=>{
+    const seen=new Set(coll('transactions').map(t=>t.date+'|'+t.merchant+'|'+t.amount));
+    impRows.forEach(r=>{ const k=r.date+'|'+r.merchant+'|'+r.amount; if(seen.has(k))return; seen.add(k);
+      VAULT.transactions.push({id:uid(),date:r.date,merchant:r.merchant,amount:r.amount,direction:'out',category:r.category,account:'Imported',type:r.type,deductible:r.deductible?1:0}); });
+    impRows=[]; await persist();
+  });
+};
+
+/* ---- Review ---- */
+VIEWS.review=(v)=>{
+  const q=uncategorized(); const cleared=settings().reviewCleared||0;
+  let h=`<div class="section-title">Review · Categorize</div>`;
+  if(!q.length){ h+=`<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div><div class="ds">${cleared} cleared. Every transaction is categorized.</div></div>`; v.innerHTML=h; return; }
+  const x=q[0], g=categorize(x.merchant)||{}, guess=g.c||'Other';
+  const cats=[guess,...CATS.filter(c=>c!==guess&&c!=='Income')];
+  h+=`<div class="rv-q"><div class="qh"><span class="qm">${esc(x.merchant)}<small>${fmtDate(x.date)}${g.t==='biz'?' · likely business':''}</small></span><span class="qa">${money(num(x.amount))}</span></div>`+
+    `<div class="rv-cats">${cats.map((c,i)=>`<button data-c="${esc(c)}">${i===0?'✓ ':''}${esc(c)}</button>`).join('')}</div></div>`;
+  h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TEACHES LEDGER FOR NEXT TIME</div>`;
+  v.innerHTML=h;
+  $$('.rv-cats button').forEach(b=>b.addEventListener('click',async()=>{
+    x.category=b.dataset.c;
+    settings().merchantRules[(x.merchant||'').toLowerCase()]={c:x.category,t:x.type||'per',ded:x.deductible?1:0};
+    settings().reviewCleared=(settings().reviewCleared||0)+1;
+    await persist();
+  }));
+};
+
+/* ---- Cash Flow ---- */
+VIEWS.cashflow=(v)=>{
+  const months={}; coll('transactions').forEach(t=>{ const k=ym(t.date); if(!k)return; (months[k]=months[k]||{inc:0,exp:0})[t.direction==='in'?'inc':'exp']+=num(t.amount); });
+  const keys=Object.keys(months).sort().slice(-6);
+  let h=`<div class="section-title">Cash Flow · By Month</div>`;
+  if(!keys.length){ v.innerHTML=h+empty('No transactions yet — add some in Register'); return; }
+  h+=keys.map(k=>{ const m=months[k]; const lbl=new Date(k+'-01').toLocaleDateString('en-US',{month:'short',year:'2-digit'}); return `<div class="li"><span class="k">${lbl}</span><span class="dots"></span><span class="v">${money0(m.inc-m.exp)} <small class="muted">${money0(m.inc)} / ${money0(m.exp)}</small></span></div>`; }).join('');
+  const tm=thisMonth();
+  const inCats=catTotals(t=>t.direction==='in'&&ym(t.date)===tm), outCats=catTotals(t=>t.direction!=='in'&&ym(t.date)===tm);
+  if(inCats.length){ h+=`<div class="section-title">This Month · In</div>`+bars(inCats); }
+  if(outCats.length){ h+=`<div class="section-title">This Month · Out</div>`+bars(outCats); }
+  const f=flowFor(t=>ym(t.date)===tm);
+  h+=`<div class="li tot"><span class="k">NET THIS MONTH</span><span class="dots"></span><span class="v">${money0(f.net)}</span></div>`;
+  if(f.inc>0) h+=`<div class="foot-note">SAVINGS RATE ${Math.round(f.net/f.inc*100)}%</div>`;
+  v.innerHTML=h;
+};
+
+/* ---- Invest ---- */
+VIEWS.invest=(v)=>{
+  const hs=coll('holdings'), val=holdingsValue(), cost=holdingsCost();
+  let h=`<div class="section-title">Portfolio</div>`;
+  if(!hs.length){ v.innerHTML=h+empty('No holdings yet')+addBtn('holdings','Add Holding'); return; }
+  h+=`<div class="hero-total"><div class="lbl">Market Value</div><div class="amt">${money0(val)}</div><div class="sub">cost ${money0(cost)} · ${cost?((val-cost)/cost*100).toFixed(1):'0'}%</div></div>`;
+  const cls={}; hs.forEach(x=>{ cls[x.assetClass||'Other']=(cls[x.assetClass||'Other']||0)+num(x.value); });
+  h+=bars(Object.entries(cls).sort((a,b)=>b[1]-a[1]));
+  h+=`<div class="section-title">Holdings</div>`+hs.map(x=>row(x,'holdings',x.symbol,num(x.shares)+' sh · '+(x.assetClass||''),money0(num(x.value)))).join('');
+  h+=`<div class="li tot"><span class="k">UNREALIZED</span><span class="dots"></span><span class="v">${money0(val-cost)}</span></div>`;
+  h+=addBtn('holdings','Add Holding');
+  v.innerHTML=h;
+};
+
+/* ---- Recurring ---- */
+VIEWS.recurring=(v)=>{
+  const rs=coll('recurring');
+  let h=`<div class="section-title">Recurring</div>`;
+  if(!rs.length){ v.innerHTML=h+empty('No subscriptions or bills yet')+addBtn('recurring','Add Recurring'); return; }
+  const monthly=rs.reduce((s,r)=>s+num(r.amount)*(CADENCE_TO_MONTH[r.cadence]||1),0);
+  h+=`<div class="split"><div><div class="l">Per Month</div><div class="n">${money0(monthly)}</div></div><div><div class="l">Per Year</div><div class="n">${money0(monthly*12)}</div></div><div><div class="l">Items</div><div class="n">${rs.length}</div></div></div>`;
+  h+=rs.slice().sort((a,b)=>num(b.amount)-num(a.amount)).map(r=>row(r,'recurring',r.name,(r.cadence||'')+(r.nextDate?' · next '+fmtDate(r.nextDate):''),money0(num(r.amount)))).join('');
+  h+=addBtn('recurring','Add Recurring');
+  v.innerHTML=h;
+};
+
+/* ---- Goals ---- */
+VIEWS.goals=(v)=>{
+  const gs=coll('goals');
+  let h=`<div class="section-title">Goals</div>`;
+  if(!gs.length){ v.innerHTML=h+empty('No goals yet')+addBtn('goals','Add Goal'); return; }
+  h+=gs.map(g=>{ const t=num(g.target),c=num(g.current),pct=t?Math.min(100,Math.round(c/t*100)):0;
+    const filled=Math.round(pct/100*34), eta=num(g.monthly)>0&&c<t?Math.ceil((t-c)/num(g.monthly))+' mo left':(c>=t?'COMPLETE':'NO FUNDING');
+    return `<div class="prog" data-edit="goals:${g.id}" style="cursor:pointer"><div class="ph"><b>${esc(g.name)}</b><span>${pct}%</span></div>`+
+      `<div class="track">${'█'.repeat(filled)}${'░'.repeat(34-filled)}</div>`+
+      `<div class="pm"><span>${money0(c)} / ${money0(t)}</span><span>${eta}</span></div></div>`; }).join('');
+  h+=addBtn('goals','Add Goal');
+  v.innerHTML=h;
+};
+
+/* ---- Receipts ---- */
+VIEWS.receipts=(v)=>{
+  const ded=coll('transactions').filter(t=>t.deductible||t.type==='biz');
+  let h=`<div class="section-title">Receipts · Deductible & Business</div>`;
+  h+=`<div class="li tot"><span class="k">DEDUCTIBLE YTD</span><span class="dots"></span><span class="v">${money0(deductibleYTD())}</span></div>`;
+  if(!ded.length){ v.innerHTML=h+empty('Mark transactions deductible or business to track them here'); return; }
+  h+=ded.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>row(t,'transactions',t.merchant,fmtDate(t.date)+' · '+(t.category||'—'),money(num(t.amount))+' '+(t.deductible?'<span class="tag k">DED</span>':'<span class="tag">BIZ</span>'))).join('');
+  v.innerHTML=h;
+};
+
+/* ---- Debt ---- */
+VIEWS.debt=(v)=>{
+  const ds=coll('accounts').filter(isLiab);
+  let h=`<div class="section-title">Debt & Liabilities</div>`;
+  if(!ds.length){ v.innerHTML=h+empty('No liabilities — add a loan or credit card')+addBtn('accounts','Add Liability'); return; }
+  h+=`<div class="hero-total"><div class="lbl">Total Owed</div><div class="amt">${money0(liabTotal())}</div><div class="sub">≈ ${money0(monthlyInterest())}/mo interest</div></div>`;
+  h+=ds.map(a=>row(a,'accounts',a.name,(a.type||'')+(num(a.apr)?' · '+num(a.apr)+'% APR':''),money0(num(a.balance)))).join('');
+  h+=addBtn('accounts','Add Liability');
+  v.innerHTML=h;
+};
+
+/* ---- Business ---- */
+VIEWS.business=(v)=>{
+  const f=businessFlow();
+  let h=`<div class="section-title">Business · Schedule C</div>`;
+  const biz=coll('transactions').filter(t=>t.type==='biz');
+  if(!biz.length){ v.innerHTML=h+empty('Tag transactions as Business to see this'); return; }
+  h+=`<div class="split"><div><div class="l">Income</div><div class="n">${money0(f.inc)}</div></div><div><div class="l">Expenses</div><div class="n">${money0(f.exp)}</div></div><div><div class="l">Net</div><div class="n">${money0(f.net)}</div></div></div>`;
+  const cats=catTotals(t=>t.type==='biz'&&t.direction!=='in');
+  if(cats.length){ h+=`<div class="section-title">Expenses by Category</div>`+bars(cats); }
+  v.innerHTML=h;
+};
+
+/* ---- Taxes ---- */
+VIEWS.taxes=(v)=>{
+  const tx=settings().tax, net=businessFlow().net, rate=num(tx.effectiveRate), proj=Math.max(0,net*rate/100);
+  let h=`<div class="section-title">Taxes · Estimate</div>`+
+   `<div class="reg-form no-print"><div class="fld"><label>Eff. Rate %</label><input id="tx-rate" type="number" step="0.1" value="${esc(rate)}"></div>`+
+   `<div class="fld"><label>State %</label><input id="tx-state" type="number" step="0.1" value="${esc(num(tx.stateRate))}"></div>`+
+   `<button class="add" id="tx-save">▸ Save Rates</button></div>`;
+  h+=`<div class="li"><span class="k">Business Net</span><span class="dots"></span><span class="v">${money0(net)}</span></div>`;
+  h+=`<div class="li"><span class="k">Deductible YTD</span><span class="dots"></span><span class="v">${money0(deductibleYTD())}</span></div>`;
+  h+=`<div class="li tot"><span class="k">EST. TAX SET-ASIDE</span><span class="dots"></span><span class="v">${money0(proj)}</span></div>`;
+  v.innerHTML=h;
+  $('#tx-save').addEventListener('click',async()=>{ tx.effectiveRate=num($('#tx-rate').value); tx.stateRate=num($('#tx-state').value); await persist(); });
+};
+
+/* ---- Docs ---- */
+VIEWS.docs=(v)=>{
+  const ds=coll('docs');
+  let h=`<div class="section-title">Documents</div><p style="font-size:11px;color:var(--ink-3);text-align:center;margin-bottom:12px">Track important records. (Names & notes — file attachments are a later step.)</p>`;
+  h+= ds.length ? ds.map(d=>row(d,'docs',d.name,(d.kind||'')+(d.note?' · '+d.note:''),'')).join('') : empty('No documents tracked yet');
+  h+=addBtn('docs','Add Document');
+  v.innerHTML=h;
+};
+
+/* ---- Family ---- */
+VIEWS.family=(v)=>{
+  const fa=coll('accounts').filter(a=>a.family), fg=coll('goals').filter(g=>g.family);
+  let h=`<div class="section-title">Family</div>`;
+  if(!fa.length&&!fg.length){ v.innerHTML=h+empty('Flag an account or goal as "Family" to group it here'); return; }
+  if(fa.length){ h+=`<div class="section-title">Accounts</div>`+fa.map(a=>row(a,'accounts',a.name,a.type,money0(num(a.balance)))).join(''); }
+  if(fg.length){ h+=`<div class="section-title">Goals</div>`+fg.map(g=>row(g,'goals',g.name,money0(num(g.current))+' / '+money0(num(g.target)),num(g.target)?Math.round(num(g.current)/num(g.target)*100)+'%':'')).join(''); }
+  v.innerHTML=h;
+};
+
+/* ---- Travel ---- */
+VIEWS.travel=(v)=>{
+  const trips=coll('transactions').filter(t=>t.category==='Travel');
+  const mi=coll('mileage'), miTotal=mi.reduce((s,m)=>s+num(m.miles),0), miDed=mi.reduce((s,m)=>s+num(m.miles)*num(m.rate),0);
+  let h=`<div class="section-title">Travel</div>`;
+  h+=`<div class="split"><div><div class="l">Travel Spend</div><div class="n">${money0(trips.reduce((s,t)=>s+num(t.amount),0))}</div></div><div><div class="l">Miles</div><div class="n">${Math.round(miTotal)}</div></div><div><div class="l">Mi. Deduction</div><div class="n">${money0(miDed)}</div></div></div>`;
+  h+=`<div class="section-title">Mileage Log</div>`;
+  h+= mi.length ? mi.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(m=>row(m,'mileage',(m.purpose||'Trip'),fmtDate(m.date)+' · '+num(m.miles)+' mi',money0(num(m.miles)*num(m.rate)))).join('') : empty('No trips logged');
+  h+=addBtn('mileage','Log Trip');
+  if(trips.length){ h+=`<div class="section-title">Travel Transactions</div>`+trips.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>row(t,'transactions',t.merchant,fmtDate(t.date),money(num(t.amount)))).join(''); }
+  v.innerHTML=h;
+};
+
+/* ---- Statement ---- */
+VIEWS.statement=(v)=>{
+  const bf=businessFlow();
+  let h=`<div class="section-title">Statement · Summary</div>`;
+  h+=`<div class="li"><span class="k">I. Net Worth</span><span class="dots"></span><span class="v">${money0(netWorth())}</span></div>`;
+  h+=`<div class="li"><span class="k">II. Assets</span><span class="dots"></span><span class="v">${money0(assetsTotal())}</span></div>`;
+  h+=`<div class="li"><span class="k">III. Liabilities</span><span class="dots"></span><span class="v">${money0(liabTotal())}</span></div>`;
+  h+=`<div class="li"><span class="k">IV. Business Net</span><span class="dots"></span><span class="v">${money0(bf.net)}</span></div>`;
+  h+=`<div class="li"><span class="k">V. Deductible YTD</span><span class="dots"></span><span class="v">${money0(deductibleYTD())}</span></div>`;
+  h+=`<div class="li"><span class="k">VI. Est. Tax Set-Aside</span><span class="dots"></span><span class="v">${money0(Math.max(0,bf.net*num(settings().tax.effectiveRate)/100))}</span></div>`;
+  h+=`<hr class="rule dbl"><div class="foot-note">PREPARED FROM YOUR ENCRYPTED LEDGER · CONFIDENTIAL</div>`;
+  h+=`<div class="actions no-print"><button onclick="window.print()">↓ Print / PDF</button></div>`;
+  v.innerHTML=h;
+};
+
+/* ---- Settings ---- */
+VIEWS.settings=(v)=>{
+  const sec=settings().webauthn&&settings().webauthn.credentialId;
+  let h=`<div class="section-title">Profile</div>`+
+   `<div class="reg-form no-print"><div class="fld"><label>Name</label><input id="pf-name" type="text" value="${esc((settings().profile&&settings().profile.name)||'')}" placeholder="Account name"></div><button class="add" id="pf-save">▸ Save Profile</button></div>`;
+  h+=`<div class="section-title">Accounts</div>`+(coll('accounts').length?coll('accounts').map(a=>row(a,'accounts',a.name,a.type,money0(num(a.balance)),isLiab(a)?'neg':'')).join(''):empty('No accounts'))+addBtn('accounts','Add Account');
+  h+=`<hr class="rule dash"><div class="section-title">Backup</div>`+
+   `<button class="add no-print" id="set-export">▸ Export Encrypted Vault</button>`+
+   `<div class="imp-drop" id="set-import-drop" tabindex="0" role="button" style="margin-top:10px"><div class="ic">↑</div><div class="it">Import .ledger backup</div><div class="is">restores an encrypted vault · re-unlock after</div><input type="file" id="set-import-file" accept=".ledger,application/json" hidden></div>`+
+   `<div class="foot-note" id="set-note" hidden></div>`;
+  h+=`<hr class="rule dash"><div class="section-title">Security</div>`+
+   `<div class="li"><span class="k">Hardware Key</span><span class="dots"></span><span class="v">${sec?'On':'Off'}</span></div>`+
+   `<button class="add no-print" id="sec-toggle" data-on="${sec?'1':''}">▸ ${sec?'Remove':'Enable'} Security Key</button>`;
+  h+=`<hr class="rule dash"><div class="section-title">Verify</div><button class="add no-print" id="set-selftest">▸ Run Self-Test</button><div id="selftest-out" style="margin-top:8px"></div>`;
+  h+=`<hr class="rule dash"><div class="section-title">Data</div>`+
+   `<button class="add no-print" id="set-clear">▸ Clear All Transactions</button>`+
+   `<button class="add ghost no-print" id="set-erase" style="margin-top:8px">▸ Erase Vault & Start Over</button>`+
+   `<div class="foot-note">END-TO-END ENCRYPTED · CIPHERTEXT ONLY · NO PASSWORD RESET</div>`;
+  v.innerHTML=h;
+
+  $('#pf-save').addEventListener('click',async()=>{ settings().profile={...settings().profile,name:$('#pf-name').value.trim()}; await persist(); });
+  $('#set-export').addEventListener('click',exportVault);
+  const note=m=>{ const n=$('#set-note'); n.hidden=false; n.textContent=m; };
+  const idrop=$('#set-import-drop'), ifile=$('#set-import-file');
+  idrop.addEventListener('click',()=>ifile.click());
+  ifile.addEventListener('change',e=>{ if(e.target.files[0]) importVaultFile(e.target.files[0],note); });
+  $('#sec-toggle').addEventListener('click',e=>{ e.currentTarget.dataset.on?disableSecurityKey():enableSecurityKey(); });
+  $('#set-selftest').addEventListener('click',runAndShowSelfTest);
+  $('#set-clear').addEventListener('click',async()=>{ if(!confirm('Clear ALL transactions? Accounts and settings stay. Export a backup first if you want one — there is no undo.'))return; VAULT.transactions=[]; settings().reviewCleared=0; await persist(); });
+  $('#set-erase').addEventListener('click',async()=>{ if(!confirm('Erase the ENTIRE vault — transactions, accounts, AND passphrase?'))return; if(!confirm('Absolutely sure? Without a .ledger backup this is gone for good.'))return; await idbSet('salt',null); await idbSet('data',null); VAULT_KEY=null; VAULT=null; location.reload(); });
+};
+
+/* ---- Settings: backup / security / self-test ---- */
+async function exportVault(){
+  const salt=await idbGet('salt'), data=await idbGet('data'); const n=$('#set-note');
+  if(!salt||!data){ if(n){n.hidden=false;n.textContent='NOTHING TO EXPORT YET.';} return; }
+  const url=URL.createObjectURL(new Blob([JSON.stringify({app:'LEDGER',fmt:1,salt,data,exportedAt:new Date().toISOString()})],{type:'application/octet-stream'}));
+  const a=document.createElement('a'); a.href=url; a.download='ledger-'+todayStr()+'.ledger'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  if(n){ n.hidden=false; n.textContent='EXPORTED · CIPHERTEXT ONLY · STORE IT SAFELY.'; }
+}
+function importVaultFile(file,note){
+  const r=new FileReader();
+  r.onload=async e=>{ let o; try{ o=JSON.parse(e.target.result); }catch(_){ return note('NOT A VALID .ledger FILE.'); }
+    if(!o||o.app!=='LEDGER'||!o.salt||!o.data) return note('NOT A VALID LEDGER BACKUP.');
+    if(!confirm('Replace this device’s vault with the imported backup? You will unlock it with ITS passphrase.')) return;
+    await idbSet('salt',o.salt); await idbSet('data',o.data); lockVault();
+    $('#lk-msg').textContent='Vault imported — enter its passphrase to unlock.'; };
+  r.onerror=()=>note('COULD NOT READ THE FILE.'); r.readAsText(file);
 }
 async function enableSecurityKey(){
-  const note=document.getElementById('sec-note');
-  const show=m=>{ if(note){note.hidden=false;note.textContent=m;} };
-  if(!window.PublicKeyCredential) return show('THIS BROWSER / DEVICE DOES NOT SUPPORT SECURITY KEYS.');
-  if(!VAULT) return;
-  try{
-    const cred=await LedgerCrypto.registerSecurityKey('ledger-'+(VAULT.createdAt||Date.now()),'LEDGER Vault');
-    if(!cred||!cred.rawId) return show('REGISTRATION RETURNED NO CREDENTIAL.');
-    settings().webauthn={credentialId:LedgerCrypto.b64.enc(cred.rawId)};
-    await saveVault();
-    renderSecurity();
-    show('SECURITY KEY ENABLED · REQUIRED AT NEXT UNLOCK.');
-  }catch(e){ show('COULD NOT REGISTER KEY — CANCELLED OR UNSUPPORTED.'); }
+  const note=$('#set-note'); const show=m=>{ if(note){note.hidden=false;note.textContent=m;} };
+  if(!window.PublicKeyCredential) return show('THIS DEVICE DOES NOT SUPPORT SECURITY KEYS.');
+  try{ const cred=await LedgerCrypto.registerSecurityKey('ledger-'+(VAULT.createdAt||Date.now()),'LEDGER Vault');
+    if(!cred||!cred.rawId) return show('NO CREDENTIAL RETURNED.');
+    settings().webauthn={credentialId:LedgerCrypto.b64.enc(cred.rawId)}; await persist();
+  }catch(e){ show('CANCELLED OR UNSUPPORTED.'); }
 }
 async function disableSecurityKey(){
-  const note=document.getElementById('sec-note');
-  if(!VAULT) return;
-  if(!confirm('Remove the security-key requirement? The vault will then unlock with just your passphrase.')) return;
-  delete settings().webauthn;
-  await saveVault();
-  renderSecurity();
-  if(note){ note.hidden=false; note.textContent='SECURITY KEY REMOVED.'; }
+  if(!confirm('Remove the security-key requirement? The vault will unlock with just your passphrase.')) return;
+  delete settings().webauthn; await persist();
 }
-// ===== SELF-TEST: prove the security invariants against the live vault =====
 async function runSelfTest(){
-  const out=[]; const add=(name,ok,detail)=>out.push({name,ok,detail});
-  if(!VAULT||!VAULT_KEY){ add('Vault is unlocked',false,'unlock the vault first'); return out; }
-  const saltRec=await idbGet('salt');
-  const blob=await idbGet('data');
-  if(!blob){ add('Ciphertext exists on disk',false,'no data record found'); return out; }
-
-  // 1) a wrong passphrase must NOT decrypt the stored blob (GCM auth fails)
-  try{
-    const wrongKey=await LedgerCrypto.deriveKey('definitely-not-the-passphrase-'+Math.random(), LedgerCrypto.b64.dec(saltRec));
-    let threw=false;
-    try{ await LedgerCrypto.decrypt(blob,wrongKey); }catch(_){ threw=true; }
-    add('Wrong passphrase rejected', threw, threw?'GCM auth tag failed, as expected':'decrypt unexpectedly succeeded');
-  }catch(e){ add('Wrong passphrase rejected',false,String(e)); }
-
-  // 2) what is on disk decrypts with the real key and matches memory (reload-safe)
-  try{
-    const onDisk=await LedgerCrypto.decrypt(blob,VAULT_KEY);
-    const ok=onDisk&&Array.isArray(onDisk.transactions)&&onDisk.transactions.length===txns().length;
-    add('Persisted data reloads', ok, 'on-disk '+((onDisk.transactions||[]).length)+' txns · in memory '+txns().length);
-  }catch(e){ add('Persisted data reloads',false,String(e)); }
-
-  // 3) the stored record is an opaque envelope — no plaintext at rest
-  try{
-    const raw=JSON.stringify(blob);
-    const sample=(txns().find(t=>t.merchant)||{}).merchant||'';
-    const leak=sample&&raw.indexOf(sample)>-1;
-    const shaped=!!(blob.ct&&blob.iv)&&!('transactions' in blob);
-    add('IndexedDB holds only ciphertext', shaped&&!leak,
-      leak?('LEAK: plaintext "'+sample+'" found in stored record'):'envelope {iv,ct,alg}; no plaintext merchant present');
-  }catch(e){ add('IndexedDB holds only ciphertext',false,String(e)); }
-
+  const out=[]; const add=(n,ok,d)=>out.push({n,ok,d});
+  if(!VAULT||!VAULT_KEY){ add('Vault unlocked',false,'unlock first'); return out; }
+  const salt=await idbGet('salt'), blob=await idbGet('data');
+  if(!blob){ add('Ciphertext on disk',false,'no data record'); return out; }
+  try{ const wrong=await LedgerCrypto.deriveKey('not-the-passphrase-'+Math.random(), LedgerCrypto.b64.dec(salt));
+    let threw=false; try{ await LedgerCrypto.decrypt(blob,wrong); }catch(_){ threw=true; }
+    add('Wrong passphrase rejected',threw,threw?'GCM auth failed as expected':'decrypt unexpectedly worked'); }
+  catch(e){ add('Wrong passphrase rejected',false,String(e)); }
+  try{ const disk=await LedgerCrypto.decrypt(blob,VAULT_KEY);
+    add('Persisted data reloads',Array.isArray(disk.transactions)&&disk.transactions.length===coll('transactions').length,'on-disk '+(disk.transactions||[]).length+' txns'); }
+  catch(e){ add('Persisted data reloads',false,String(e)); }
+  try{ const raw=JSON.stringify(blob), s=(coll('transactions').find(t=>t.merchant)||{}).merchant||'';
+    const leak=s&&raw.indexOf(s)>-1; add('IndexedDB ciphertext only',!!(blob.ct&&blob.iv)&&!leak,leak?'PLAINTEXT LEAK':'opaque {iv,ct}'); }
+  catch(e){ add('IndexedDB ciphertext only',false,String(e)); }
   return out;
 }
 async function runAndShowSelfTest(){
-  const el=document.getElementById('set-selftest-out');
-  if(el) el.innerHTML='<div class="foot-note">Running…</div>';
-  const results=await runSelfTest();
-  const passed=results.filter(r=>r.ok).length;
-  console.group('%cLEDGER self-test','font-weight:700');
-  results.forEach(r=>console.log((r.ok?'✓':'✗')+' '+r.name+' — '+r.detail));
-  console.log(passed+'/'+results.length+' checks passed'); console.groupEnd();
-  if(el) el.innerHTML=results.map(r=>
-    '<div class="li"><span class="k">'+(r.ok?'✓ ':'✗ ')+r.name+' <small>'+r.detail+'</small></span><span class="dots"></span><span class="v">'+(r.ok?'PASS':'FAIL')+'</span></div>'
-  ).join('')+'<div class="li tot"><span class="k">RESULT</span><span class="dots"></span><span class="v">'+passed+'/'+results.length+' PASS</span></div>';
+  const el=$('#selftest-out'); el.innerHTML='<div class="foot-note">Running…</div>';
+  const r=await runSelfTest(), pass=r.filter(x=>x.ok).length;
+  console.group('LEDGER self-test'); r.forEach(x=>console.log((x.ok?'✓':'✗')+' '+x.n+' — '+x.d)); console.groupEnd();
+  el.innerHTML=r.map(x=>`<div class="li"><span class="k">${x.ok?'✓ ':'✗ '}${esc(x.n)} <small>${esc(x.d)}</small></span><span class="dots"></span><span class="v">${x.ok?'PASS':'FAIL'}</span></div>`).join('')+
+    `<div class="li tot"><span class="k">RESULT</span><span class="dots"></span><span class="v">${pass}/${r.length} PASS</span></div>`;
 }
-// ----- data reset (Settings → Data) -----
-async function clearAllTransactions(){
-  const note=document.getElementById('set-data-note');
-  if(!VAULT) return;
-  if(!confirm('Clear ALL transactions from this vault?\n\nYour passphrase and settings stay. This cannot be undone — export a backup first if you want one.')) return;
-  VAULT.transactions=[];
-  settings().reviewCleared=0;
-  await saveVault();
-  hydrate();
-  if(note){ note.hidden=false; note.textContent='ALL TRANSACTIONS CLEARED · START ADDING YOUR OWN.'; }
+
+/* =====================================================================
+   Unlock / lock / boot
+   ===================================================================== */
+function hydrate(){ renderActive(); }
+function enterApp(){ $('#lock').style.display='none'; document.body.classList.remove('locked-body'); $('#lk-pass').value=''; $('#lk-msg').textContent=''; captureSnapshot(); hydrate(); }
+function lockVault(){ VAULT_KEY=null; VAULT=null; $('#lock').style.display='flex'; document.body.classList.add('locked-body'); $('#lk-pass').focus(); }
+function showRecoveryKey(rk){ setTimeout(()=>alert('VAULT CREATED.\n\nYour one-time recovery key:\n\n'+rk+'\n\nWrite it down and store it OFFLINE. There is no password reset — this is the only other way in.'),300); }
+async function unlock(passphrase){
+  const msg=$('#lk-msg'); let saltRec=await idbGet('salt'); const firstTime=!saltRec; let salt;
+  if(firstTime){ salt=LedgerCrypto.newVaultSalt(); await idbSet('salt',LedgerCrypto.b64.enc(salt)); } else salt=LedgerCrypto.b64.dec(saltRec);
+  const key=await LedgerCrypto.deriveKey(passphrase,salt);
+  if(firstTime){ VAULT_KEY=key; VAULT=blankVault(); await saveVault(); const rk=LedgerCrypto.generateRecoveryKey(); enterApp(); showRecoveryKey(rk); return; }
+  const blob=await idbGet('data'); let data;
+  try{ data=blob?await LedgerCrypto.decrypt(blob,key):blankVault(); }
+  catch(e){ msg.textContent='Wrong passphrase — try again.'; msg.className='lk-msg err'; $('#lk-pass').value=''; return; }
+  VAULT=migrateVault(data); VAULT_KEY=key;
+  const wa=settings().webauthn;
+  if(wa&&wa.credentialId){ msg.textContent='Touch your security key…';
+    try{ await LedgerCrypto.assertSecurityKey(LedgerCrypto.b64.dec(wa.credentialId)); }
+    catch(e){ lockVault(); msg.textContent='Security key required — unlock cancelled.'; msg.className='lk-msg err'; return; } }
+  enterApp();
 }
-async function loadSampleData(){
-  const note=document.getElementById('set-data-note');
-  if(!VAULT) return;
-  if(txns().length && !confirm('Replace the current transactions with sample demo data?')) return;
-  VAULT.transactions=seedTransactions();
-  settings().reviewCleared=0;
-  await saveVault();
-  hydrate();
-  if(note){ note.hidden=false; note.textContent='SAMPLE DATA LOADED.'; }
-}
-async function eraseVault(){
-  if(!confirm('Erase the ENTIRE vault on this device — transactions AND passphrase?\n\nYou will set up a brand-new, empty vault. This cannot be undone.')) return;
-  if(!confirm('Are you absolutely sure? Without a backup (.ledger export) this data is gone for good.')) return;
-  await idbSet('salt',null);
-  await idbSet('data',null);
-  VAULT_KEY=null; VAULT=null;
-  location.reload();
-}
-(function initSettings(){
-  const ex=document.getElementById('set-export');
-  if(ex) ex.addEventListener('click',exportVault);
-  const sample=document.getElementById('set-sample');
-  if(sample) sample.addEventListener('click',loadSampleData);
-  const sec=document.getElementById('sec-toggle');
-  if(sec) sec.addEventListener('click',()=>{ sec.dataset.on?disableSecurityKey():enableSecurityKey(); });
-  const st=document.getElementById('set-selftest');
-  if(st) st.addEventListener('click',runAndShowSelfTest);
-  const clr=document.getElementById('set-clear');
-  if(clr) clr.addEventListener('click',clearAllTransactions);
-  const era=document.getElementById('set-erase');
-  if(era) era.addEventListener('click',eraseVault);
-  const drop=document.getElementById('set-import-drop');
-  const input=document.getElementById('set-import-file');
-  if(drop&&input){
-    drop.addEventListener('click',()=>input.click());
-    drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});
-    input.addEventListener('change',e=>{ if(e.target.files&&e.target.files[0]) importVaultFile(e.target.files[0]); });
-    ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
-    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
-    drop.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]) importVaultFile(e.dataTransfer.files[0]); });
-  }
+
+/* boot */
+(async function init(){
+  const exists=await idbGet('salt');
+  if(!exists){ $('#lk-hint').textContent='First run — choose a strong passphrase to create your vault.'; $('#lk-unlock').textContent='Create Vault'; }
+  document.body.classList.add('locked-body');
+  const go=()=>{ const p=$('#lk-pass').value; if(p.length<8){ $('#lk-msg').textContent='Use at least 8 characters.'; $('#lk-msg').className='lk-msg err'; return; } unlock(p); };
+  $('#lk-unlock').addEventListener('click',go);
+  $('#lk-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  $('#lockNow').addEventListener('click',lockVault);
 })();
+
+/* service worker */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+
+/* theme toggle */
+const themeBtn=$('#themeBtn');
+themeBtn.addEventListener('click',()=>{ const dark=document.body.getAttribute('data-theme')==='dark';
+  document.body.setAttribute('data-theme',dark?'light':'dark'); themeBtn.textContent=dark?'◐ DARK MODE':'◑ LIGHT MODE'; });
+
+/* tabs */
+$$('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  activeTab=b.dataset.v; $$('.view').forEach(view=>view.classList.remove('on'));
+  $('#v-'+activeTab).classList.add('on'); renderActive(); window.scrollTo({top:0,behavior:'smooth'}); }));
+
+/* global CRUD delegation */
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-msave]')) return saveEditor();
+  if(e.target.closest('[data-mcancel]')) return closeModal();
+  if(e.target.closest('[data-mdel]')) return deleteEditor();
+  const add=e.target.closest('[data-add]'); if(add) return openEditor(add.dataset.add);
+  const ed=e.target.closest('[data-edit]'); if(ed){ const i=ed.dataset.edit.indexOf(':'); const c=ed.dataset.edit.slice(0,i), id=ed.dataset.edit.slice(i+1); return openEditor(c, coll(c).find(x=>x.id===id)); }
+});
+modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
 </script>
 </body>
 </html>
