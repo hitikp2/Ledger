@@ -547,15 +547,19 @@ function sparkline(vals){ if(vals.length<2) return ''; const w=300,h=64,mn=Math.
    Categorization (Import + Register)
    ===================================================================== */
 const CAT_RULES = [
-  [/erewhon|whole ?foods|trader|grocer|ralphs|safeway|coffee/i, {c:'Food', t:'per', ded:0}],
-  [/equinox|gym|fitness|sauna|cryo/i,                           {c:'Health', t:'per', ded:0}],
-  [/shell|chevron|arco|gas|fuel|exxon|mobil|76 /i,              {c:'Auto', t:'per', ded:0}],
-  [/b&h|adorama|best buy|apple store|lighting/i,                {c:'Equipment', t:'biz', ded:1}],
-  [/adobe|figma|canva|quickbooks|notion|claude|openai|saas/i,   {c:'Software', t:'biz', ded:1}],
-  [/facebook ads|google ads|meta|mailchimp|vistaprint/i,        {c:'Marketing', t:'biz', ded:1}],
-  [/state farm|geico|insurance|policy|liability/i,              {c:'Insurance', t:'biz', ded:1}],
-  [/soho house|catering|restaurant|client dinner|grill/i,       {c:'Meals 50%', t:'biz', ded:0}],
-  [/uber|lyft|airline|delta|united|hotel|airbnb/i,             {c:'Travel', t:'biz', ded:1}],
+  [/netflix|spotify|hulu|disney\+|youtube|apple\.com\/bill|apple music|icloud|adobe|figma|canva|quickbooks|notion|claude|openai|chatgpt|dropbox|microsoft|google ?\*/i, {c:'Software', t:'per', ded:0}],
+  [/uber|lyft|airline|delta|united|southwest|jetblue|airbnb|hotel|marriott|hilton|expedia|amtrak|rental car/i, {c:'Travel', t:'per', ded:0}],
+  [/shell|chevron|arco|exxon|mobil|76 |conoco|valero|citgo|gas|fuel|parking|toll/i, {c:'Auto', t:'per', ded:0}],
+  [/cvs|walgreens|rite aid|pharmacy|equinox|gym|fitness|sauna|cryo|dental|clinic|hospital|doctor|medical/i, {c:'Health', t:'per', ded:0}],
+  [/pg&e|edison|electric|water|sewer|comcast|xfinity|at&t|verizon|t-?mobile|spectrum|utility|internet/i, {c:'Utilities', t:'per', ded:0}],
+  [/home depot|lowe'?s|hardware|ikea|rent|mortgage|hoa|landlord|property mgmt/i, {c:'Housing', t:'per', ded:0}],
+  [/state farm|geico|allstate|progressive|insurance|policy|liability/i, {c:'Insurance', t:'per', ded:0}],
+  [/b&h|adorama|best buy|apple store|micro center|newegg|staples|office depot/i, {c:'Equipment', t:'biz', ded:1}],
+  [/facebook ads|google ads|meta ads|mailchimp|vistaprint|fiverr|upwork|squarespace|wix/i, {c:'Marketing', t:'biz', ded:1}],
+  [/soho house|catering|client dinner|steakhouse|fine dining/i, {c:'Meals 50%', t:'biz', ded:0}],
+  [/taco bell|mcdonald|chipotle|shake shack|starbucks|coffee|cafe|café|restaurant|grill|pizza|burger|chick|subway|panera|dunkin|7.?eleven|deli|kitchen|eatery|wendy|popeyes|sushi|thai|ramen/i, {c:'Food', t:'per', ded:0}],
+  [/whole ?foods|trader joe|erewhon|safeway|ralphs|kroger|costco|walmart|target|grocer|market|aldi|sprouts|vons|albertsons/i, {c:'Food', t:'per', ded:0}],
+  [/amazon|amzn|ebay|etsy|paypal|venmo|cash app|square/i, {c:'Other', t:'per', ded:0}],
 ];
 function categorize(desc){
   const learned=settings().merchantRules; if(learned){ const k=(desc||'').toLowerCase(); for(const m in learned){ if(m&&k.includes(m)) return learned[m]; } }
@@ -730,11 +734,14 @@ VIEWS.review=(v)=>{
   const q=uncategorized(); const cleared=settings().reviewCleared||0;
   let h=`<div class="section-title">Review · Categorize</div>`;
   if(!q.length){ h+=`<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div><div class="ds">${cleared} cleared. Every transaction is categorized.</div></div>`; v.innerHTML=h; return; }
+  // how many of the queue the rules can auto-assign right now
+  const autoN=q.filter(t=>categorize(t.merchant)).length;
+  if(autoN) h+=`<button class="add no-print" id="rv-auto">⚡ Auto-Categorize ${autoN} of ${q.length}</button>`;
   const x=q[0], g=categorize(x.merchant)||{}, guess=g.c||'Other';
   const cats=[guess,...CATS.filter(c=>c!==guess&&c!=='Income')];
   h+=`<div class="rv-q"><div class="qh"><span class="qm">${esc(x.merchant)}<small>${fmtDate(x.date)}${g.t==='biz'?' · likely business':''}</small></span><span class="qa">${money(num(x.amount))}</span></div>`+
     `<div class="rv-cats">${cats.map((c,i)=>`<button data-c="${esc(c)}">${i===0?'✓ ':''}${esc(c)}</button>`).join('')}</div></div>`;
-  h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TEACHES LEDGER FOR NEXT TIME</div>`;
+  h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TAP A ROW IN EXPLORE TO FIX DETAILS</div>`;
   v.innerHTML=h;
   $$('.rv-cats button').forEach(b=>b.addEventListener('click',async()=>{
     x.category=b.dataset.c;
@@ -742,6 +749,11 @@ VIEWS.review=(v)=>{
     settings().reviewCleared=(settings().reviewCleared||0)+1;
     await persist();
   }));
+  const auto=$('#rv-auto'); if(auto) auto.addEventListener('click',async()=>{
+    let n=0; uncategorized().forEach(t=>{ const m=categorize(t.merchant); if(m){ t.category=m.c; if(m.t)t.type=m.t; t.deductible=m.ded?1:0; n++; } });
+    settings().reviewCleared=(settings().reviewCleared||0)+n;
+    await persist();
+  });
 };
 
 /* ---- Cash Flow ---- */
