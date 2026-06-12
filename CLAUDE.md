@@ -37,20 +37,26 @@ color, hand-drawn SVG charts, dark/light via `data-theme`.
   (non-secret, base64) and `data` (the ciphertext envelope). Helpers `idb`,
   `idbGet`, `idbSet`. **Only ciphertext is ever persisted.**
 - **Session state** (memory only): `VAULT_KEY` (CryptoKey, dropped on lock) and
-  `VAULT` (`{version, createdAt, transactions:[], settings:{}}`). `saveVault()`
-  re-encrypts `VAULT` and writes the `data` blob.
+  `VAULT` — **model v2**: `{version, createdAt, transactions, accounts, holdings,
+  recurring, goals, mileage, docs, snapshots, settings}`. `migrateVault()`
+  backfills missing collections on unlock; `saveVault()` re-encrypts and writes
+  the `data` blob; `persist()` = `captureSnapshot()` + `saveVault()` +
+  `renderActive()`. **No demo/seed data** — vaults start empty.
 - **Unlock flow** (`unlock`): first run generates a salt + recovery key and
-  creates an empty vault; returning runs decrypt the stored blob to verify the
-  passphrase (a thrown GCM error == wrong passphrase). `lockVault()` wipes keys
-  from memory.
-- **UI**: a tab system (`#tabs` → `.view`) with Overview, Register, Explore,
-  Import, Review, plus statement-style display tabs. Theme toggle flips
-  `data-theme`.
+  creates an empty vault; returning runs decrypt + `migrateVault`. A thrown GCM
+  error == wrong passphrase. Optional WebAuthn gate after passphrase.
+- **UI**: tab system (`#tabs` → `.view`); each tab is rendered by a function in
+  the `VIEWS` registry from live `VAULT` data (no static content). `renderActive()`
+  re-renders the current tab; tab switch + every mutation calls it.
+- **CRUD**: a generic editor (`openEditor`/`saveEditor`/`deleteEditor`) driven by
+  the `FIELDS` spec powers Accounts, Holdings, Recurring, Goals, Mileage, Docs,
+  and Transaction edits — via `[data-add]` / `[data-edit]` delegation + a `#modal`.
+- **Derived (never stored)**: `netWorth`, `assetsTotal`, `liabTotal`,
+  `liquidTotal`, `flowFor`, `catTotals`, `deductibleYTD`, `businessFlow`,
+  `monthlyInterest`, etc. Overview/Cash Flow/Business/Taxes/Statement are all
+  computed from transactions + accounts.
 - **Import**: `parseCSV` (delimiter + header detection) → `categorize` against
-  `CAT_RULES` (merchant-keyword regex → `{category, type, deductible}`).
-  Uncategorized rows route to Review.
-- **Explore**: `xpFilter`/`xpRender` — a filter + group-by engine (range,
-  type, category, merchant, amount; group by category/merchant/week).
+  `CAT_RULES` + learned `settings.merchantRules`. Uncategorized rows → Review.
 
 ## Hard constraints — do not break these
 
@@ -140,6 +146,13 @@ lands.
   **Settings → Data** panel (`Load Sample Data`). Added `clearAllTransactions`
   (blank the ledger, keep passphrase/settings) and `eraseVault` (full reset →
   reload). Bumped `sw.js` `CACHE` to `ledger-v3`.
+- 2026-06-12 — **Full rewrite** (`ledger.html`): removed all demo/mockup HTML
+  and made every tab real. Vault is now **model v2** with `accounts`, `holdings`,
+  `recurring`, `goals`, `mileage`, `docs`, `snapshots` (+ `migrateVault`). Added a
+  generic `FIELDS`-driven CRUD editor (`#modal`) reused by every editable tab, a
+  `VIEWS` render registry, and a derive layer for net worth / cash flow / taxes /
+  statement. Crypto layer + receipt design system reused unchanged. `sw.js` CACHE
+  → `ledger-v4`. See `PLAN.md` for the roadmap this implements.
 - 2026-06-11 — Renamed `ledger-receipt.html` → `ledger.html` so the file name
   matches the manifest `start_url` and the `sw.js` SHELL with no deploy-time
   rename step; updated all doc/skill references and dropped the rename

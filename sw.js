@@ -1,6 +1,6 @@
 /* LEDGER service worker — offline app shell.
    Bumping CACHE version invalidates old caches on next load. */
-const CACHE = 'ledger-v3';
+const CACHE = 'ledger-v4';
 const SHELL = [
   'ledger.html',
   'manifest.json',
