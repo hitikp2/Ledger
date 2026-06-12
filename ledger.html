@@ -175,6 +175,13 @@ body{
 .rv-cats{display:flex;flex-wrap:wrap;gap:6px}
 .rv-cats button{font-family:inherit;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--soft);background:var(--bg);color:var(--ink-2);padding:6px 10px;cursor:pointer}
 .rv-cats button:hover{border-color:var(--ink);color:var(--ink)}
+.rv-recap{border:1px dashed var(--ink-3);padding:11px 13px;margin-bottom:12px;color:var(--ink)}
+.rv-recap .qh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.rv-recap .qm{font-size:12px;font-weight:700}
+.rv-recap .rv-x{font-family:inherit;font-size:9px;letter-spacing:.05em;text-transform:uppercase;border:none;background:none;color:var(--ink-3);cursor:pointer;padding:0}
+.rv-recap .rv-x:hover{color:var(--ink)}
+.rv-recap .li{display:flex;align-items:baseline;font-size:11px;padding:2px 0;color:var(--ink-2)}
+.rv-recap .li .v{font-weight:600;color:var(--ink)}
 .rv-done{text-align:center;padding:30px 16px;color:var(--ink)}
 .rv-done .ck{font-size:34px;margin-bottom:10px}
 .rv-done .dt{font-size:14px;font-weight:600;margin-bottom:6px}
@@ -730,10 +737,18 @@ VIEWS.import=(v)=>{
 };
 
 /* ---- Review ---- */
+let rvAuto=null; // summary of the last auto-categorize run {total, by:{cat:n}}
 VIEWS.review=(v)=>{
   const q=uncategorized(); const cleared=settings().reviewCleared||0;
   let h=`<div class="section-title">Review · Categorize</div>`;
-  if(!q.length){ h+=`<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div><div class="ds">${cleared} cleared. Every transaction is categorized.</div></div>`; v.innerHTML=h; return; }
+  // Receipt of what auto-categorize just did — shown until the next manual action.
+  if(rvAuto&&rvAuto.total){
+    const rows=Object.keys(rvAuto.by).sort((a,b)=>rvAuto.by[b]-rvAuto.by[a])
+      .map(c=>`<div class="li"><span class="k">${esc(c)}</span><span class="dots"></span><span class="v">${rvAuto.by[c]}</span></div>`).join('');
+    h+=`<div class="rv-recap"><div class="qh"><span class="qm">✓ Auto-categorized ${rvAuto.total}</span><button class="rv-x no-print" id="rv-recap-x">dismiss</button></div>${rows}</div>`;
+  }
+  if(!q.length){ h+=`<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div><div class="ds">${cleared} cleared. Every transaction is categorized.</div></div>`; v.innerHTML=h;
+    const dx0=$('#rv-recap-x'); if(dx0) dx0.addEventListener('click',()=>{ rvAuto=null; renderActive(); }); return; }
   // how many of the queue the rules can auto-assign right now
   const autoN=q.filter(t=>categorize(t.merchant)).length;
   if(autoN) h+=`<button class="add no-print" id="rv-auto">⚡ Auto-Categorize ${autoN} of ${q.length}</button>`;
@@ -743,14 +758,18 @@ VIEWS.review=(v)=>{
     `<div class="rv-cats">${cats.map((c,i)=>`<button data-c="${esc(c)}">${i===0?'✓ ':''}${esc(c)}</button>`).join('')}</div></div>`;
   h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TAP A ROW IN EXPLORE TO FIX DETAILS</div>`;
   v.innerHTML=h;
+  const dx=$('#rv-recap-x'); if(dx) dx.addEventListener('click',()=>{ rvAuto=null; renderActive(); });
   $$('.rv-cats button').forEach(b=>b.addEventListener('click',async()=>{
+    rvAuto=null; // a manual pick supersedes the auto recap
     x.category=b.dataset.c;
     settings().merchantRules[(x.merchant||'').toLowerCase()]={c:x.category,t:x.type||'per',ded:x.deductible?1:0};
     settings().reviewCleared=(settings().reviewCleared||0)+1;
     await persist();
   }));
   const auto=$('#rv-auto'); if(auto) auto.addEventListener('click',async()=>{
-    let n=0; uncategorized().forEach(t=>{ const m=categorize(t.merchant); if(m){ t.category=m.c; if(m.t)t.type=m.t; t.deductible=m.ded?1:0; n++; } });
+    const by={}; let n=0;
+    uncategorized().forEach(t=>{ const m=categorize(t.merchant); if(m){ t.category=m.c; if(m.t)t.type=m.t; t.deductible=m.ded?1:0; by[m.c]=(by[m.c]||0)+1; n++; } });
+    rvAuto={total:n, by};
     settings().reviewCleared=(settings().reviewCleared||0)+n;
     await persist();
   });
