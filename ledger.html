@@ -389,6 +389,15 @@ const money=n=>(n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFract
 const money0=n=>(n<0?'−$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US');
 const todayStr=()=>new Date().toISOString().slice(0,10);
 const fmtDate=d=>{ if(!d) return ''; const x=new Date(d); return isNaN(x)?d:x.toLocaleDateString('en-US',{month:'short',day:'2-digit'}).toUpperCase(); };
+/* Normalize any date string to ISO YYYY-MM-DD (handles MM/DD/YYYY, M/D/YY, etc.)
+   so all month math is consistent. Avoids UTC shift by reading local parts. */
+function isoDate(s){
+  if(!s) return todayStr();
+  s=String(s).trim(); let m;
+  if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)) return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+  if(m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/)){ let y=m[3]; if(y.length===2) y='20'+y; return y+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0'); }
+  const d=new Date(s); return isNaN(d)?todayStr():d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 const ACCT_TYPES=['Checking','Savings','Cash','Brokerage','Retirement','Crypto','Property','Vehicle','Credit Card','Loan','Mortgage','Line of Credit','Other'];
 const LIAB_TYPES=['Credit Card','Loan','Mortgage','Line of Credit'];
@@ -411,6 +420,8 @@ function migrateVault(v){
   v.settings.profile=v.settings.profile||{name:''};
   v.settings.tax=v.settings.tax||{effectiveRate:25, stateRate:0};
   if(typeof v.settings.reviewCleared!=='number') v.settings.reviewCleared=0;
+  // repair any non-ISO dates from earlier imports so month math is correct
+  v.transactions.forEach(t=>{ if(t.date && !/^\d{4}-\d{2}-\d{2}$/.test(t.date)) t.date=isoDate(t.date); });
   return v;
 }
 const coll=k=>(VAULT&&Array.isArray(VAULT[k]))?VAULT[k]:[];
@@ -536,15 +547,19 @@ function sparkline(vals){ if(vals.length<2) return ''; const w=300,h=64,mn=Math.
    Categorization (Import + Register)
    ===================================================================== */
 const CAT_RULES = [
-  [/erewhon|whole ?foods|trader|grocer|ralphs|safeway|coffee/i, {c:'Food', t:'per', ded:0}],
-  [/equinox|gym|fitness|sauna|cryo/i,                           {c:'Health', t:'per', ded:0}],
-  [/shell|chevron|arco|gas|fuel|exxon|mobil|76 /i,              {c:'Auto', t:'per', ded:0}],
-  [/b&h|adorama|best buy|apple store|lighting/i,                {c:'Equipment', t:'biz', ded:1}],
-  [/adobe|figma|canva|quickbooks|notion|claude|openai|saas/i,   {c:'Software', t:'biz', ded:1}],
-  [/facebook ads|google ads|meta|mailchimp|vistaprint/i,        {c:'Marketing', t:'biz', ded:1}],
-  [/state farm|geico|insurance|policy|liability/i,              {c:'Insurance', t:'biz', ded:1}],
-  [/soho house|catering|restaurant|client dinner|grill/i,       {c:'Meals 50%', t:'biz', ded:0}],
-  [/uber|lyft|airline|delta|united|hotel|airbnb/i,             {c:'Travel', t:'biz', ded:1}],
+  [/netflix|spotify|hulu|disney\+|youtube|apple\.com\/bill|apple music|icloud|adobe|figma|canva|quickbooks|notion|claude|openai|chatgpt|dropbox|microsoft|google ?\*/i, {c:'Software', t:'per', ded:0}],
+  [/uber|lyft|airline|delta|united|southwest|jetblue|airbnb|hotel|marriott|hilton|expedia|amtrak|rental car/i, {c:'Travel', t:'per', ded:0}],
+  [/shell|chevron|arco|exxon|mobil|76 |conoco|valero|citgo|gas|fuel|parking|toll/i, {c:'Auto', t:'per', ded:0}],
+  [/cvs|walgreens|rite aid|pharmacy|equinox|gym|fitness|sauna|cryo|dental|clinic|hospital|doctor|medical/i, {c:'Health', t:'per', ded:0}],
+  [/pg&e|edison|electric|water|sewer|comcast|xfinity|at&t|verizon|t-?mobile|spectrum|utility|internet/i, {c:'Utilities', t:'per', ded:0}],
+  [/home depot|lowe'?s|hardware|ikea|rent|mortgage|hoa|landlord|property mgmt/i, {c:'Housing', t:'per', ded:0}],
+  [/state farm|geico|allstate|progressive|insurance|policy|liability/i, {c:'Insurance', t:'per', ded:0}],
+  [/b&h|adorama|best buy|apple store|micro center|newegg|staples|office depot/i, {c:'Equipment', t:'biz', ded:1}],
+  [/facebook ads|google ads|meta ads|mailchimp|vistaprint|fiverr|upwork|squarespace|wix/i, {c:'Marketing', t:'biz', ded:1}],
+  [/soho house|catering|client dinner|steakhouse|fine dining/i, {c:'Meals 50%', t:'biz', ded:0}],
+  [/taco bell|mcdonald|chipotle|shake shack|starbucks|coffee|cafe|café|restaurant|grill|pizza|burger|chick|subway|panera|dunkin|7.?eleven|deli|kitchen|eatery|wendy|popeyes|sushi|thai|ramen/i, {c:'Food', t:'per', ded:0}],
+  [/whole ?foods|trader joe|erewhon|safeway|ralphs|kroger|costco|walmart|target|grocer|market|aldi|sprouts|vons|albertsons/i, {c:'Food', t:'per', ded:0}],
+  [/amazon|amzn|ebay|etsy|paypal|venmo|cash app|square/i, {c:'Other', t:'per', ded:0}],
 ];
 function categorize(desc){
   const learned=settings().merchantRules; if(learned){ const k=(desc||'').toLowerCase(); for(const m in learned){ if(m&&k.includes(m)) return learned[m]; } }
@@ -575,6 +590,11 @@ VIEWS.overview=(v)=>{
   h+=`<div class="split"><div><div class="l">Assets</div><div class="n">${money0(as)}</div></div>`+
     `<div><div class="l">Liabilities</div><div class="n">${money0(li)}</div></div>`+
     `<div><div class="l">Liquid</div><div class="n">${money0(lq)}</div></div></div>`;
+  if(!coll('accounts').length) h+=`<div class="foot-note">ADD ACCOUNTS BELOW TO SEE YOUR NET WORTH</div>`;
+  // this month's activity (derived from transactions — works without accounts)
+  if(coll('transactions').length){ const mf=flowFor(t=>ym(t.date)===thisMonth());
+    h+=`<div class="section-title">This Month</div><div class="split"><div><div class="l">In</div><div class="n">${money0(mf.inc)}</div></div>`+
+      `<div><div class="l">Out</div><div class="n">${money0(mf.exp)}</div></div><div><div class="l">Net</div><div class="n">${money0(mf.net)}</div></div></div>`; }
   // alerts
   const al=[];
   const u=uncategorized().length; if(u) al.push([`${u} transaction${u>1?'s':''} need a category`,'REVIEW']);
@@ -667,7 +687,7 @@ function parseCSV(text){
   const di=header.findIndex(h=>/date/.test(h)), ai=header.findIndex(h=>/amount|debit|charge|withdraw/.test(h)), mi=header.findIndex(h=>/desc|payee|merchant|name|memo/.test(h));
   const hasHeader=di>-1||ai>-1||mi>-1; const out=[];
   (hasHeader?lines.slice(1):lines).forEach(line=>{ const f=line.split(delim).map(x=>x.replace(/^"|"$/g,'').trim());
-    const date=f[di>-1?di:0]||todayStr(), merch=(f[mi>-1?mi:1]||'').slice(0,48);
+    const date=isoDate(f[di>-1?di:0]||todayStr()), merch=(f[mi>-1?mi:1]||'').slice(0,48);
     let amt=Math.abs(parseFloat((f[ai>-1?ai:2]||'').replace(/[$,()]/g,''))||0);
     if(!merch||!amt) return; const cat=categorize(merch);
     out.push({date,merchant:merch,amount:amt,category:cat?cat.c:null,type:cat?cat.t:'per',deductible:cat?cat.ded:0}); });
@@ -714,11 +734,14 @@ VIEWS.review=(v)=>{
   const q=uncategorized(); const cleared=settings().reviewCleared||0;
   let h=`<div class="section-title">Review · Categorize</div>`;
   if(!q.length){ h+=`<div class="rv-done"><div class="ck">✓</div><div class="dt">All caught up.</div><div class="ds">${cleared} cleared. Every transaction is categorized.</div></div>`; v.innerHTML=h; return; }
+  // how many of the queue the rules can auto-assign right now
+  const autoN=q.filter(t=>categorize(t.merchant)).length;
+  if(autoN) h+=`<button class="add no-print" id="rv-auto">⚡ Auto-Categorize ${autoN} of ${q.length}</button>`;
   const x=q[0], g=categorize(x.merchant)||{}, guess=g.c||'Other';
   const cats=[guess,...CATS.filter(c=>c!==guess&&c!=='Income')];
   h+=`<div class="rv-q"><div class="qh"><span class="qm">${esc(x.merchant)}<small>${fmtDate(x.date)}${g.t==='biz'?' · likely business':''}</small></span><span class="qa">${money(num(x.amount))}</span></div>`+
     `<div class="rv-cats">${cats.map((c,i)=>`<button data-c="${esc(c)}">${i===0?'✓ ':''}${esc(c)}</button>`).join('')}</div></div>`;
-  h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TEACHES LEDGER FOR NEXT TIME</div>`;
+  h+=`<div class="foot-note">${q.length} TO REVIEW · ${cleared} CLEARED · TAP A ROW IN EXPLORE TO FIX DETAILS</div>`;
   v.innerHTML=h;
   $$('.rv-cats button').forEach(b=>b.addEventListener('click',async()=>{
     x.category=b.dataset.c;
@@ -726,6 +749,11 @@ VIEWS.review=(v)=>{
     settings().reviewCleared=(settings().reviewCleared||0)+1;
     await persist();
   }));
+  const auto=$('#rv-auto'); if(auto) auto.addEventListener('click',async()=>{
+    let n=0; uncategorized().forEach(t=>{ const m=categorize(t.merchant); if(m){ t.category=m.c; if(m.t)t.type=m.t; t.deductible=m.ded?1:0; n++; } });
+    settings().reviewCleared=(settings().reviewCleared||0)+n;
+    await persist();
+  });
 };
 
 /* ---- Cash Flow ---- */
@@ -981,6 +1009,7 @@ async function unlock(passphrase){
   try{ data=blob?await LedgerCrypto.decrypt(blob,key):blankVault(); }
   catch(e){ msg.textContent='Wrong passphrase — try again.'; msg.className='lk-msg err'; $('#lk-pass').value=''; return; }
   VAULT=migrateVault(data); VAULT_KEY=key;
+  await saveVault();          // persist any migration/date repairs
   const wa=settings().webauthn;
   if(wa&&wa.credentialId){ msg.textContent='Touch your security key…';
     try{ await LedgerCrypto.assertSecurityKey(LedgerCrypto.b64.dec(wa.credentialId)); }
