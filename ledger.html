@@ -613,9 +613,11 @@ VIEWS.register=(v)=>{
   h+=`<div class="split"><div><div class="l">Month In</div><div class="n">${money0(f.inc)}</div></div>`+
     `<div><div class="l">Month Out</div><div class="n">${money0(f.exp)}</div></div>`+
     `<div><div class="l">Net</div><div class="n">${money0(f.net)}</div></div></div>`;
-  h+=`<div class="section-title">Recent</div>`;
-  const recent=txSorted().slice(0,25);
+  const allTx=txSorted();
+  h+=`<div class="section-title">Recent · ${allTx.length} total</div>`;
+  const recent=allTx.slice(0,50);
   h+= recent.length ? recent.map(t=>row(t,'transactions',t.merchant,fmtDate(t.date)+' · '+(t.category||'—')+(t.account?' · '+t.account:''),money(num(t.amount)),t.direction==='in'?'pos':'neg')).join('') : empty('No transactions yet');
+  if(allTx.length>50) h+=`<div class="foot-note">SHOWING LATEST 50 OF ${allTx.length} · SEE ALL IN EXPLORE</div>`;
   v.innerHTML=h;
   $$('#ioToggle button').forEach(b=>b.addEventListener('click',()=>{ regIO=b.dataset.io; $$('#ioToggle button').forEach(x=>x.classList.toggle('on',x===b)); }));
   const add=async()=>{
@@ -658,7 +660,7 @@ VIEWS.explore=(v)=>{
 };
 
 /* ---- Import ---- */
-let impRows=[];
+let impRows=[], lastImport=null;
 function parseCSV(text){
   const lines=text.split(/\r?\n/).filter(l=>l.trim()); if(!lines.length) return [];
   const delim=lines[0].includes('\t')?'\t':','; const header=lines[0].toLowerCase().split(delim).map(x=>x.replace(/"/g,'').trim());
@@ -675,6 +677,9 @@ VIEWS.import=(v)=>{
   let h=`<div class="section-title">Import CSV</div>`+
     `<p style="font-size:12px;color:var(--ink-2);text-align:center;margin-bottom:14px;line-height:1.6">Export a CSV from any bank or card and drop it here. Parsing runs locally — nothing is uploaded.</p>`+
     `<div class="imp-drop" id="imp-drop" tabindex="0" role="button"><div class="ic">↓</div><div class="it">Drop CSV here</div><div class="is">or tap to choose a file</div><input type="file" id="imp-file" accept=".csv,text/csv" hidden></div>`;
+  if(lastImport&&!impRows.length){
+    h+=`<div class="li tot"><span class="k">LAST IMPORT</span><span class="dots"></span><span class="v">${lastImport.added} ADDED · ${lastImport.skipped} SKIPPED</span></div>`+
+       `<div class="foot-note">YOUR LEDGER NOW HAS ${lastImport.total} TRANSACTIONS · VIEW THEM ALL IN EXPLORE</div>`; }
   if(impRows.length){ const catd=impRows.filter(r=>r.category).length;
     h+=`<div class="imp-summary"><div><div class="l">Rows</div><div class="n">${impRows.length}</div></div>`+
       `<div><div class="l">Categorized</div><div class="n">${Math.round(catd/impRows.length*100)}%</div></div>`+
@@ -691,9 +696,15 @@ VIEWS.import=(v)=>{
   ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove('drag'); }));
   drop.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
   const c=$('#imp-commit'); if(c) c.addEventListener('click',async()=>{
-    const seen=new Set(coll('transactions').map(t=>t.date+'|'+t.merchant+'|'+t.amount));
-    impRows.forEach(r=>{ const k=r.date+'|'+r.merchant+'|'+r.amount; if(seen.has(k))return; seen.add(k);
-      VAULT.transactions.push({id:uid(),date:r.date,merchant:r.merchant,amount:r.amount,direction:'out',category:r.category,account:'Imported',type:r.type,deductible:r.deductible?1:0}); });
+    // Only skip rows that already exist in the vault; allow duplicate-looking
+    // rows WITHIN one import (e.g. two identical coffees on the same day).
+    const existing=new Set(coll('transactions').map(t=>t.date+'|'+t.merchant+'|'+t.amount));
+    let added=0, skipped=0;
+    impRows.forEach(r=>{ const k=r.date+'|'+r.merchant+'|'+r.amount;
+      if(existing.has(k)){ skipped++; return; }
+      VAULT.transactions.push({id:uid(),date:r.date,merchant:r.merchant,amount:r.amount,direction:'out',category:r.category,account:'Imported',type:r.type,deductible:r.deductible?1:0});
+      added++; });
+    lastImport={added,skipped,total:coll('transactions').length};
     impRows=[]; await persist();
   });
 };
